@@ -5,12 +5,11 @@ defmodule Integrate.Replication do
   alias __MODULE__
 
   def start_link(_opts) do
-    config = Application.get_env(:integrate, Replication)
-
-    Broadway.start_link(Replication,
+    Broadway.start_link(
+      Replication,
       name: Replication,
       producer: [
-        module: {Replication.Producer, config},
+        module: {Replication.Config.producer(), []},
         transformer: {Replication, :transform, []},
         concurrency: 1
       ],

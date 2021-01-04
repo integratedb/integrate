@@ -3,8 +3,8 @@ defmodule Integrate.Replication.Client do
   Database replication client.
 
   Uses `:epgsql` for it's `start_replication` function. Borrows the connection
-  config from the Integrate.Repo. Note that epgsql doesn't support connecting
-  via a unix socket.
+  config from the Integrate.Repo is need be. Note that epgsql doesn't support
+  connecting via a unix socket.
   """
 
   alias Integrate.Replication.Config
@@ -12,13 +12,18 @@ defmodule Integrate.Replication.Client do
   @doc """
   Create a database connection.
 
-  Uses the Integrate.Repo config as default, can be overriden using `opts`.
+  Uses the Integrate.Repo config as default, can be overriden by passing in
+  epqsql `config` directly `opts`.
 
   Returns `{:ok, conn}` or `{:error, reason}`.
   """
-  def connect(opts \\ []) do
-    opts
-    |> Config.merge()
+  def connect(nil) do
+    Config.parse_repo_config_into_epgsql_config()
+    |> connect()
+  end
+  def connect(%{} = config) do
+    config
+    |> Map.put(:replication, 'database')
     |> :epgsql.connect()
   end
 
@@ -38,17 +43,9 @@ defmodule Integrate.Replication.Client do
   Returns `:ok` on success.
   """
   def ensure_replication_slot(conn, slot) do
-    IO.inspect {:ensure_replication_slot, slot}
-
     case has_existing_slot(conn, slot) do
-      true ->
-        IO.inspect true
-
-        :ok
-      false ->
-        IO.inspect false
-
-        create_slot(conn, slot)
+      true -> :ok
+      false -> create_slot(conn, slot)
     end
   end
 

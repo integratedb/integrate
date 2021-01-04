@@ -19,7 +19,9 @@ defmodule Integrate.Replication.Producer do
     DeletedRecord,
     TruncatedRelation
   }
+
   alias Integrate.Replication.Client
+  alias Integrate.Replication.Config
 
   defmodule State do
     defstruct [
@@ -32,26 +34,20 @@ defmodule Integrate.Replication.Producer do
     ]
   end
 
-  def start_link(config) do
-    GenStage.start_link(__MODULE__, config)
+  def start_link(opts) do
+    GenStage.start_link(__MODULE__, opts)
   end
 
   @impl true
-  def init(config) do
-    client_config =
-      config
-      |> Keyword.get(:epgsql, [])
+  def init(_) do
+    {:ok, conn} =
+      Config.epgsql()
+      |> Client.connect()
 
-    namespace =
-      config
-      |> Keyword.get(:namespace, "integratedb")
-      |> String.replace("'", "\\'")
-
-    publication = "#{namespace}_publication"
-    slot = "#{namespace}_slot"
-
-    {:ok, conn} = Client.connect(client_config)
+    slot = Config.slot_name()
     :ok = Client.ensure_replication_slot(conn, slot)
+
+    publication = Config.publication_name()
     :ok = Client.start_replication(conn, publication, slot, self())
 
     {:producer, %State{conn: conn, queue: :queue.new()}}

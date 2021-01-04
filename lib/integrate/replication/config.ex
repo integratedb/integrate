@@ -1,12 +1,11 @@
 defmodule Integrate.Replication.Config do
   @moduledoc """
-  Allows Integrate to "just work" with a `DATABASE_URL` -- reusing postgrex
-  based repo database connection config for the epgsql connection underpinning
-  the replication capability.
-
-  Note that this fragile coersion magic can be avoided by explicitly passing
-  an `epgsql: [host: 'lala', ...]` section in your `Integrate.Replication` config.
+  Replication config helpers.
   """
+
+  alias Integrate.Replication
+
+  @namespace_exp ~r/^\w{1,64}$/
 
   @connection_keys [
     :url,
@@ -19,12 +18,18 @@ defmodule Integrate.Replication.Config do
     :ssl_opts
   ]
 
-  def merge(opts) do
+  @doc """
+  Allows `Integrate.Replication`'s epgsql connection to "just work" with the existing
+  Repo database connection config (including a `DATABASE_URL`).
+
+  This can be avoided by explicitly passing an `epgsql: [host: 'lala', ...]` section
+  in your `Integrate.Replication` config.
+  """
+  def parse_repo_config_into_epgsql_config do
     {url, config} =
       :integrate
       |> Application.fetch_env!(Integrate.Repo)
       |> Keyword.take(@connection_keys)
-      |> Keyword.merge(opts)
       |> Keyword.pop(:url)
 
     config =
@@ -101,6 +106,44 @@ defmodule Integrate.Replication.Config do
         end
       end)
     |> Enum.into(%{})
-    |> Map.put(:replication, 'database')
+  end
+
+  def config do
+    :integrate
+    |> Application.get_env(Replication)
+  end
+
+  def producer do
+    config()
+    |> Keyword.get(:producer, Replication.Producer)
+  end
+
+  def epgsql do
+    config()
+    |> Keyword.get(:epgsql)
+  end
+
+  def publication_name do
+    "#{escaped_namespace()}_publication"
+  end
+
+  def slot_name do
+    "#{escaped_namespace()}_slot"
+  end
+
+  def escaped_namespace do
+    config()
+    |> Keyword.fetch!(:namespace)
+    |> validate_and_downcase_namespace()
+  end
+
+  defp validate_and_downcase_namespace(value) when is_binary(value) do
+    case String.match?(value, @namespace_exp) do
+      true ->
+        String.downcase(value)
+
+      false ->
+        raise "Invalid namespace -- must match `#{Regex.source(@namespace_exp)}`."
+    end
   end
 end

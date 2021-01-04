@@ -78,9 +78,9 @@ defmodule Integrate.MixProject do
   defp aliases do
     [
       setup: ["deps.get", "db.setup"],
+      "db.setup": ["ecto.create", "enable_logical_replication"],
       "db.migrate": ["ecto.migrate", "run priv/repo/seeds.exs"],
       "db.reset": ["ecto.drop", "db.setup"],
-      "db.setup": ["ecto.create", "enable_logical_replication"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
     ]
   end

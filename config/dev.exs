@@ -10,13 +10,7 @@ config :integrate, Integrate.Repo,
   pool_size: 10
 
 config :integrate, Integrate.Replication,
-  namespace: "integratedb"#,
-  # epgsql: %{
-  #   host: 'localhost',
-  #   database: 'integrate_dev',
-  #   username: 'postgres',
-  #   password: 'postgres'
-  # }
+  namespace: "integratedb"
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
