@@ -168,8 +168,3 @@ If you're installing IntegrateDB, why not also wrap the DB with some easy primit
 For a queue, we can use [Oban](https://hexdocs.pm/oban/Oban.html).
 
 For subscriptions we can just use `LISTEN` and `NOTIFY` (or possibly consume the logical replication feed if enabled like [supabase/realtime](https://github.com/supabase/realtime) does).
-
-
-## 3. Implementation
-
-...
