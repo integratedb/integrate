@@ -33,6 +33,7 @@ defmodule Integrate.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:argon2_elixir, "~> 2.3"},
       {:broadway, "~> 0.6"},
       {:ecto_sql, "~> 3.4"},
       {:epgsql, "~> 4.2"},

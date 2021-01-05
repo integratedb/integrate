@@ -23,7 +23,9 @@ defmodule Integrate.DataCase do
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
+
       import Integrate.DataCase
+      import Integrate.Fixtures
     end
   end
 

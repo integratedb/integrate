@@ -22,6 +22,10 @@ defmodule IntegrateWeb.ConnCase do
       # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest
+
+      import Integrate.Fixtures
+
+      import IntegrateWeb.AuthHelpers
       import IntegrateWeb.ConnCase
 
       alias IntegrateWeb.Router.Helpers, as: Routes
@@ -38,6 +42,10 @@ defmodule IntegrateWeb.ConnCase do
       Ecto.Adapters.SQL.Sandbox.mode(Integrate.Repo, {:shared, self()})
     end
 
-    {:ok, conn: Phoenix.ConnTest.build_conn()}
+    conn =
+      Phoenix.ConnTest.build_conn()
+      |> Plug.Conn.put_private(:phoenix_endpoint, IntegrateWeb.Endpoint)
+
+    {:ok, conn: conn}
   end
 end

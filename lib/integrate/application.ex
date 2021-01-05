@@ -18,8 +18,8 @@ defmodule Integrate.Application do
       # # Start the PubSub system
       # {Phoenix.PubSub, name: Integrate.PubSub},
 
-      # # Start the Endpoint (http/https)
-      # IntegrateWeb.Endpoint,
+      # Start the Endpoint (http/https)
+      IntegrateWeb.Endpoint,
 
       # Start Broadway pipeline ingesting and processing the postgres database's
       # logical replication feed.
