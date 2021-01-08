@@ -4,19 +4,15 @@ defmodule IntegrateWeb.StakeholderControllerTest do
   alias Integrate.Stakeholders.Stakeholder
 
   @create_attrs %{
-    name: "some-name"
+    name: "some_name"
   }
   @update_attrs %{
-    name: "some-updated-name"
+    name: "some_updated_name"
   }
   @invalid_attrs %{name: nil}
 
   setup %{conn: conn} do
     {:ok, conn: put_req_header(conn, "accept", "application/json")}
-  end
-
-  describe "auth required" do
-
   end
 
   describe "index" do
@@ -54,7 +50,7 @@ defmodule IntegrateWeb.StakeholderControllerTest do
       conn = get(conn, Routes.stakeholder_path(conn, :show, id))
       resp = json_response(conn, 200)["data"]
 
-      assert resp == %{"id" => id, "name" => "some-name"}
+      assert resp == %{"id" => id, "name" => "some_name"}
     end
 
     test "renders errors when data is invalid", %{conn: conn} do
@@ -72,18 +68,25 @@ defmodule IntegrateWeb.StakeholderControllerTest do
       |> assert_requires_auth()
     end
 
-    test "renders stakeholder when data is valid", %{conn: conn, stakeholder: %Stakeholder{id: id} = stakeholder} do
-      conn = put(conn, Routes.stakeholder_path(conn, :update, stakeholder), stakeholder: @update_attrs)
+    test "renders stakeholder when data is valid", %{
+      conn: conn,
+      stakeholder: %Stakeholder{id: id} = stakeholder
+    } do
+      conn =
+        put(conn, Routes.stakeholder_path(conn, :update, stakeholder), stakeholder: @update_attrs)
+
       assert %{"id" => ^id} = json_response(conn, 200)["data"]
 
       conn = get(conn, Routes.stakeholder_path(conn, :show, id))
       resp = json_response(conn, 200)["data"]
 
-      assert resp == %{"id" => id, "name" => "some-updated-name"}
+      assert resp == %{"id" => id, "name" => "some_updated_name"}
     end
 
     test "renders errors when data is invalid", %{conn: conn, stakeholder: stakeholder} do
-      conn = put(conn, Routes.stakeholder_path(conn, :update, stakeholder), stakeholder: @invalid_attrs)
+      conn =
+        put(conn, Routes.stakeholder_path(conn, :update, stakeholder), stakeholder: @invalid_attrs)
+
       assert json_response(conn, 422)["errors"] != %{}
     end
   end

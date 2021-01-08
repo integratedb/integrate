@@ -6,8 +6,8 @@ defmodule Integrate.AccountsTest do
   describe "users" do
     alias Integrate.Accounts.User
 
-    @valid_attrs %{username: "some-username", password: "some password"}
-    @update_attrs %{username: "some-updated-username", password: "some updated password"}
+    @valid_attrs %{username: "some_username", password: "some password"}
+    @update_attrs %{username: "some_updated_username", password: "some updated password"}
     @invalid_attrs %{username: nil, password: nil}
 
     def user_fixture(attrs \\ %{}) do
@@ -32,7 +32,7 @@ defmodule Integrate.AccountsTest do
 
     test "create_user/1 with valid data creates a user" do
       assert {:ok, %User{} = user} = Accounts.create_user(@valid_attrs)
-      assert user.username == "some-username"
+      assert user.username == "some_username"
       assert user.password == "some password"
     end
 
@@ -43,7 +43,7 @@ defmodule Integrate.AccountsTest do
     test "update_user/2 with valid data updates the user" do
       user = user_fixture()
       assert {:ok, %User{} = user} = Accounts.update_user(user, @update_attrs)
-      assert user.username == "some-updated-username"
+      assert user.username == "some_updated_username"
       assert user.password == "some updated password"
     end
 

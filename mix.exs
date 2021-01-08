@@ -35,9 +35,10 @@ defmodule Integrate.MixProject do
     [
       {:argon2_elixir, "~> 2.3"},
       {:broadway, "~> 0.6"},
-      {:ecto_sql, "~> 3.4"},
+      {:ecto_sql, "~> 3.5"},
       {:epgsql, "~> 4.2"},
       {:ex_doc, "~> 0.23", only: :dev, runtime: false},
+      {:ex_json_schema, "~> 0.7.4"},
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
       {:pgoutput_decoder, "~> 0.1.0"},
@@ -81,6 +82,7 @@ defmodule Integrate.MixProject do
       setup: ["deps.get", "db.setup"],
       "db.setup": ["ecto.create", "enable_logical_replication"],
       "db.migrate": ["ecto.migrate", "run priv/repo/seeds.exs"],
+      "db.rollback": ["ecto.rollback"],
       "db.reset": ["ecto.drop", "db.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
     ]

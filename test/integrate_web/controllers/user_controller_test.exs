@@ -5,11 +5,11 @@ defmodule IntegrateWeb.UserControllerTest do
   alias Integrate.Accounts.User
 
   @create_attrs %{
-    username: "some-name",
+    username: "some_name",
     password: "some password"
   }
   @update_attrs %{
-    username: "some-updated-name",
+    username: "some_updated_name",
     password: "some updated password"
   }
   @invalid_attrs %{username: nil, password: nil}
@@ -88,7 +88,7 @@ defmodule IntegrateWeb.UserControllerTest do
       assert %{"id" => ^id} = json_response(conn, 200)["data"]
 
       conn = get(conn, Routes.user_path(conn, :show, id))
-      assert %{"id" => _, "username" => "some-updated-name"} = json_response(conn, 200)["data"]
+      assert %{"id" => _, "username" => "some_updated_name"} = json_response(conn, 200)["data"]
     end
 
     test "renders errors when data is invalid", %{conn: conn, user: user} do

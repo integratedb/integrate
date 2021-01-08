@@ -10,6 +10,8 @@ defmodule Integrate do
   def contexts do
     quote do
       alias Integrate.Accounts
+      alias Integrate.Claims
+      alias Integrate.Specification
       alias Integrate.Stakeholders
     end
   end
@@ -22,6 +24,9 @@ defmodule Integrate do
       alias Integrate.Validate
 
       import Ecto.Changeset
+
+      @timestamps_opts [type: :utc_datetime_usec]
+      @schema_prefix Integrate.Config.namespace()
     end
   end
 

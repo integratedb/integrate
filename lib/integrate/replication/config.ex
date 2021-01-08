@@ -3,9 +3,8 @@ defmodule Integrate.Replication.Config do
   Replication config helpers.
   """
 
+  alias Integrate.Config, as: BaseConfig
   alias Integrate.Replication
-
-  @namespace_exp ~r/^\w{1,64}$/
 
   @connection_keys [
     :url,
@@ -130,26 +129,10 @@ defmodule Integrate.Replication.Config do
   end
 
   def publication_name do
-    "#{escaped_namespace()}_publication"
+    "#{BaseConfig.namespace()}_publication"
   end
 
   def slot_name do
-    "#{escaped_namespace()}_slot"
-  end
-
-  def escaped_namespace do
-    config()
-    |> Keyword.fetch!(:namespace)
-    |> validate_and_downcase_namespace()
-  end
-
-  defp validate_and_downcase_namespace(value) when is_binary(value) do
-    case String.match?(value, @namespace_exp) do
-      true ->
-        String.downcase(value)
-
-      false ->
-        raise "Invalid namespace -- must match `#{Regex.source(@namespace_exp)}`."
-    end
+    "#{BaseConfig.namespace()}_slot"
   end
 end

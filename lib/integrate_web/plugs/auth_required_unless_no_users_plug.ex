@@ -22,7 +22,7 @@ defmodule IntegrateWeb.AuthRequiredUnlessNoUsersPlug do
   end
 
   def authorize(nil, conn) do
-    case Accounts.any_users_exist? do
+    case Accounts.any_users_exist?() do
       true ->
         AuthRequiredPlug.authorize(nil, conn)
 

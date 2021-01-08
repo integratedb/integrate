@@ -6,6 +6,9 @@ defmodule Integrate.Stakeholders.Stakeholder do
 
     belongs_to :user, Accounts.User
 
+    has_many :specs, Specification.Spec
+    # has_many :claims, Claims.Claim
+
     timestamps()
   end
 

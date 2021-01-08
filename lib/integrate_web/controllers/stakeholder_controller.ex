@@ -12,11 +12,14 @@ defmodule IntegrateWeb.StakeholderController do
   end
 
   def create(conn, %{"stakeholder" => params}) do
-    with {:ok, %Stakeholder{} = stakeholder} <- Stakeholders.create_stakeholder(params) do
+    user = conn.assigns[:current_user]
+
+    with {:ok, %{stakeholder: stakeholder} = assigns} <-
+           Stakeholders.create_stakeholder(user, params) do
       conn
       |> put_status(:created)
       |> put_resp_header("location", Routes.stakeholder_path(conn, :show, stakeholder))
-      |> render("show.json", stakeholder: stakeholder)
+      |> render("new_stakeholder.json", assigns)
     end
   end
 
@@ -28,7 +31,8 @@ defmodule IntegrateWeb.StakeholderController do
   def update(conn, %{"id" => id, "stakeholder" => params}) do
     stakeholder = Stakeholders.get_stakeholder!(id)
 
-    with {:ok, %Stakeholder{} = stakeholder} <- Stakeholders.update_stakeholder(stakeholder, params) do
+    with {:ok, %{stakeholder: %Stakeholder{} = stakeholder}} <-
+           Stakeholders.update_stakeholder(stakeholder, params) do
       render(conn, "show.json", stakeholder: stakeholder)
     end
   end
@@ -36,7 +40,7 @@ defmodule IntegrateWeb.StakeholderController do
   def delete(conn, %{"id" => id}) do
     stakeholder = Stakeholders.get_stakeholder!(id)
 
-    with {:ok, %Stakeholder{}} <- Stakeholders.delete_stakeholder(stakeholder) do
+    with {:ok, %{stakeholder: %Stakeholder{}}} <- Stakeholders.delete_stakeholder(stakeholder) do
       send_resp(conn, :no_content, "")
     end
   end

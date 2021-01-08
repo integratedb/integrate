@@ -7,8 +7,27 @@
 # General application configuration
 use Mix.Config
 
+namespace = "integratedb"
+
+safe_namespace =
+  namespace
+  |> String.downcase()
+  |> String.trim()
+
+true =
+  safe_namespace
+  |> String.match?(~r/^\w{1,32}$/)
+
 config :integrate,
-  ecto_repos: [Integrate.Repo]
+  ecto_repos: [Integrate.Repo],
+  db_namespace: safe_namespace
+
+config :integrate, Integrate.Repo,
+  migration_default_prefix: safe_namespace,
+  migration_source: "#{safe_namespace}_schema_migrations",
+  migration_timestamps: [type: :utc_datetime_usec]
+
+config :integrate, Integrate.Replication, []
 
 # Configures the endpoint
 config :integrate, IntegrateWeb.Endpoint,

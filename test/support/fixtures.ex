@@ -17,11 +17,12 @@ defmodule Integrate.Fixtures do
 
   def create_stakeholder(%{user: user}) do
     attrs = %{
-      name: "reporter",
-      user_id: user.id
+      name: "reporter"
     }
-    {:ok, stakeholder} = Stakeholders.create_stakeholder(attrs)
 
-    %{stakeholder: stakeholder}
+    {:ok, %{stakeholder: stakeholder, db_user: db_user}} =
+      Stakeholders.create_stakeholder(user, attrs)
+
+    %{stakeholder: stakeholder, stakeholder_db_user: db_user}
   end
 end

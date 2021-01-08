@@ -1,4 +1,4 @@
-defmodule Integrate.Repo.Migrations.SetupReplication do
+defmodule Integrate.Repo.Migrations.CreatePublication do
   use Ecto.Migration
 
   alias Integrate.Replication.Config

@@ -13,4 +13,17 @@ defmodule IntegrateWeb.StakeholderView do
   def render("stakeholder.json", %{stakeholder: stakeholder}) do
     %{id: stakeholder.id, name: stakeholder.name}
   end
+
+  def render("new_stakeholder.json", %{stakeholder: stakeholder, db_user: {username, password}}) do
+    %{
+      data: %{
+        id: stakeholder.id,
+        name: stakeholder.name,
+        credentials: %{
+          username: username,
+          password: password
+        }
+      }
+    }
+  end
 end
