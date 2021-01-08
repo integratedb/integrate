@@ -11,7 +11,7 @@ defmodule Mix.Tasks.InsertFoos do
     Logger.configure(level: :warning)
 
     [:postgrex, :ecto] |> Enum.each(&Application.ensure_all_started/1)
-    {:ok, _} = Repo.start_link
+    {:ok, _} = Repo.start_link()
 
     delay_secs =
       case args do
@@ -43,7 +43,7 @@ defmodule Mix.Tasks.InsertFoos do
   end
 
   defp random_string(len) do
-    len / 2
+    (len / 2)
     |> Kernel.trunc()
     |> :crypto.strong_rand_bytes()
     |> Base.encode16(case: :lower)

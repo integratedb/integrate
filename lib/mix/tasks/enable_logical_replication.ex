@@ -7,7 +7,7 @@ defmodule Mix.Tasks.EnableLogicalReplication do
   @shortdoc "Enable logical replication in the postgres database."
   def run(_) do
     [:postgrex, :ecto] |> Enum.each(&Application.ensure_all_started/1)
-    {:ok, pid} = Repo.start_link
+    {:ok, pid} = Repo.start_link()
 
     {:ok, _} = SQL.query(Repo, "ALTER SYSTEM SET wal_level = 'logical'")
 

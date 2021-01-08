@@ -36,6 +36,7 @@ defmodule Integrate.Replication.Config do
       case {config[:hostname], url} do
         {nil, nil} ->
           raise "Requires hostname or url to be configured."
+
         {nil, url} ->
           %URI{
             host: hostname,
@@ -55,12 +56,14 @@ defmodule Integrate.Replication.Config do
             case userinfo do
               nil ->
                 opts
+
               value ->
                 case String.split(value, ":") do
                   [username, password] ->
                     opts
                     |> Keyword.put(:username, username)
                     |> Keyword.put(:password, password)
+
                   [username] ->
                     opts
                     |> Keyword.put(:username, username)
@@ -71,14 +74,17 @@ defmodule Integrate.Replication.Config do
             case query do
               nil ->
                 opts
+
               value ->
                 case URI.decode_query(value) do
                   %{"ssl" => x} when x in ["true", "on"] ->
                     opts
                     |> Keyword.put(:ssl, true)
+
                   %{"ssl" => x} when x in ["false", "off"] ->
                     opts
                     |> Keyword.put(:ssl, false)
+
                   _ ->
                     opts
                 end
@@ -94,17 +100,17 @@ defmodule Integrate.Replication.Config do
     config
     |> Enum.reject(fn {_, v} -> is_nil(v) end)
     |> Enum.map(fn {k, v} ->
-        case is_binary(v) do
-          true -> {k, String.to_charlist(v)}
-          false -> {k, v}
-        end
-      end)
+      case is_binary(v) do
+        true -> {k, String.to_charlist(v)}
+        false -> {k, v}
+      end
+    end)
     |> Enum.map(fn {k, v} ->
-        case k do
-          :hostname -> {:host, v}
-          _ -> {k, v}
-        end
-      end)
+      case k do
+        :hostname -> {:host, v}
+        _ -> {k, v}
+      end
+    end)
     |> Enum.into(%{})
   end
 

@@ -12,9 +12,7 @@ config :integrate, Integrate.Repo,
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox
 
-config :integrate, Integrate.Replication,
-  namespace: "integratedb_test",
-  producer: Broadway.DummyProducer
+config :integrate, Integrate.Replication, producer: Broadway.DummyProducer
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.

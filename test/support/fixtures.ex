@@ -9,6 +9,7 @@ defmodule Integrate.Fixtures do
       username: "root",
       password: "1234567890"
     }
+
     {:ok, user} = Accounts.create_user(attrs)
 
     %{user: user}

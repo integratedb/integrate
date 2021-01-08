@@ -24,14 +24,12 @@ defmodule Integrate.Replication.Producer do
   alias Integrate.Replication.Config
 
   defmodule State do
-    defstruct [
-      conn: nil,
-      demand: 0,
-      queue: nil,
-      relations: %{},
-      transaction: nil,
-      types: %{}
-    ]
+    defstruct conn: nil,
+              demand: 0,
+              queue: nil,
+              relations: %{},
+              transaction: nil,
+              types: %{}
   end
 
   def start_link(opts) do
@@ -172,6 +170,7 @@ defmodule Integrate.Replication.Producer do
   defp dispatch_events(%{demand: 0} = state, events) do
     emit_events(state, events)
   end
+
   defp dispatch_events(%{demand: demand, queue: queue} = state, events) do
     case :queue.out(queue) do
       # If the queue has events, recurse to accumulate them
@@ -192,12 +191,14 @@ defmodule Integrate.Replication.Producer do
   defp emit_events(state, []) do
     {:noreply, [], state}
   end
+
   defp emit_events(state, events) do
     {:noreply, Enum.reverse(events), state}
   end
 
   # TODO: Typecast to meaningful Elixir types here later
   defp data_tuple_to_map(_columns, nil), do: %{}
+
   defp data_tuple_to_map(columns, tuple_data) do
     for {column, index} <- Enum.with_index(columns, 1),
         do: {column.name, :erlang.element(index, tuple_data)},

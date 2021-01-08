@@ -21,6 +21,7 @@ defmodule Integrate.Replication.Client do
     Config.parse_repo_config_into_epgsql_config()
     |> connect()
   end
+
   def connect(%{} = config) do
     config
     |> Map.put(:replication, 'database')
@@ -51,10 +52,10 @@ defmodule Integrate.Replication.Client do
 
   defp has_existing_slot(conn, slot) do
     query = """
-            SELECT COUNT(*) >= 1 \
-            FROM pg_replication_slots \
-            WHERE slot_name = '#{slot}'
-            """
+    SELECT COUNT(*) >= 1 \
+    FROM pg_replication_slots \
+    WHERE slot_name = '#{slot}'
+    """
 
     {:ok, _, [{result}]} = execute(conn, query)
 
@@ -66,10 +67,10 @@ defmodule Integrate.Replication.Client do
 
   defp create_slot(conn, slot) do
     command = """
-              CREATE_REPLICATION_SLOT #{slot} \
-              LOGICAL pgoutput \
-              NOEXPORT_SNAPSHOT
-              """
+    CREATE_REPLICATION_SLOT #{slot} \
+    LOGICAL pgoutput \
+    NOEXPORT_SNAPSHOT
+    """
 
     case execute(conn, command) do
       {:ok, _, _} -> :ok

@@ -79,4 +79,3 @@ defmodule IntegrateWeb.Auth do
     |> Token.verify(@refresh_token_salt, refresh_token, max_age: @refresh_token_max_age)
   end
 end
-
