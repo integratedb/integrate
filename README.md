@@ -1,6 +1,7 @@
 
 [![License - MIT](https://img.shields.io/badge/license-MIT-green)](https://github.com/integratedb/integrate/blob/main/LICENSE.md)
 ![Status - Alpha](https://img.shields.io/badge/status-alpha-red)
+[![CI Build Status](https://circleci.com/gh/integratedb/integrate.svg?style=shield)](https://circleci.com/gh/integratedb/integrate)
 
 # IntegrateDB
 

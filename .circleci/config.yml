@@ -1,0 +1,20 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/elixir:1.11.3
+        environment:
+          MIX_ENV: "test"
+
+      - image: circleci/postgres:12.5
+        environment:
+          POSTGRES_HOST_AUTH_METHOD: "trust"
+
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run: mix do local.hex --force, local.rebar --force
+      - run: mix do deps.get, deps.compile
+      - run: mix do ecto.create, ecto.migrate
+      - run: mix compile --warnings-as-errors
+      - run: mix test
