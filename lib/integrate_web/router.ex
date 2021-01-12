@@ -27,7 +27,13 @@ defmodule IntegrateWeb.Router do
         pipe_through :authenticated
 
         resources "/users", UserController, except: [:new, :create, :edit]
-        resources "/stakeholders", StakeholderController, except: [:new, :edit]
+
+        scope "/stakeholders" do
+          resources "/", StakeholderController, except: [:new, :edit]
+
+          get "/:id/:type", StakeholderController, :show
+          put "/:id/:type", StakeholderController, :update
+        end
       end
 
       scope "/" do
