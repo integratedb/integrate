@@ -9,10 +9,10 @@ defmodule IntegrateWeb.SpecificationData do
   }
 
   @schema :code.priv_dir(:integrate)
-    |> Path.join("spec.schema.json")
-    |> File.read!()
-    |> Jason.decode!()
-    |> Schema.resolve()
+          |> Path.join("spec.schema.json")
+          |> File.read!()
+          |> Jason.decode!()
+          |> Schema.resolve()
 
   @doc """
   Use a JSON Schema to validate user input specifications.
@@ -59,7 +59,7 @@ defmodule IntegrateWeb.SpecificationData do
 
   """
   def expand(data) do
-    throw {:NotImplemented, :expand, data}
+    throw({:NotImplemented, :expand, data})
   end
 
   @doc """
@@ -103,6 +103,6 @@ defmodule IntegrateWeb.SpecificationData do
 
   """
   def contract(attrs) do
-    throw {:NotImplemented, :contract, attrs}
+    throw({:NotImplemented, :contract, attrs})
   end
 end

@@ -11,7 +11,7 @@ defmodule Integrate.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
-      package: package(),
+      package: package()
     ] ++ docs()
   end
 
