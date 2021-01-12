@@ -10,7 +10,8 @@ defmodule Integrate.MixProject do
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      package: package(),
     ] ++ docs()
   end
 
@@ -68,6 +69,17 @@ defmodule Integrate.MixProject do
         main: "introduction",
         output: "_build_docs"
       ]
+    ]
+  end
+
+  defp package do
+    [
+      name: "integrate",
+      maintainers: ["James Arthur"],
+      licenses: ["MIT"],
+      links: %{
+        "GitHub" => "https://github.com/integratedb/integrate"
+      }
     ]
   end
 
