@@ -89,7 +89,7 @@ defmodule Integrate.Stakeholders do
   def create_stakeholder(%Accounts.User{id: user_id}, attrs \\ %{}) do
     attrs =
       attrs
-      |> Util.coerce_atom_keys_to_string_keys()
+      |> Util.to_string_keys()
       |> Map.put("user_id", user_id)
 
     Multi.new()

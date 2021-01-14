@@ -4,6 +4,22 @@ defmodule IntegrateWeb.SpecificationView do
   alias IntegrateWeb.SpecificationData
 
   def render("show.json", %{spec: spec}) do
-    %{data: SpecificationData.contract(%{match: spec.match})}
+    matches = SpecificationData.contract(spec.match)
+
+    %{
+      data: %{
+        type: spec.type,
+        match: matches
+      }
+    }
+  end
+
+  def render("show_empty.json", %{type: type}) do
+    %{
+      data: %{
+        type: type,
+        match: []
+      }
+    }
   end
 end

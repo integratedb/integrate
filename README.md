@@ -72,13 +72,13 @@ Now, say that your reporting application is interested in orders placed by custo
 ```js
 {
   "data": {
-    "claims": [
+    "match": [
       {
-        "path": ["public", "orders"], 
+        "path": "public.orders",
         "fields": ["*"]
       },
       {
-        "path": ["public", "customers"], 
+        "path": "public.customers",
         "fields": ["id", "user_id"]
       }
     ]
@@ -91,15 +91,15 @@ Or it can achieve the same thing **and** register to receive a notification when
 ```js
 {
   "data": {
-    "notifications": [
+    "match": [
       {
-        "path": ["public", "orders"], 
+        "path": "public.orders",
         "events": ["*"],
         "fields": ["*"],
         "channels": ["*"]
       },
       {
-        "path": ["public", "customers"], 
+        "path": "public.customers",
         "events": ["INSERT", "UPDATE", "DELETE"],
         "fields": ["id", "user_id"],
         "channels": ["SOCKET", "WEBHOOK", "REDIS"]
@@ -156,22 +156,32 @@ With IntegrateDB, you can update your data dependency configuration (claims and 
 1. allow alternatives, enabling changes ("alterations")
 2. make tables, columns and types optional, enabling deletions ("drops")
 
-For alternatives, you replace the value with an object:
+For alternatives, you replace the path with an array of alternative paths:
+
+```js
+// from
+"path": "public.orders"
+
+// to
+"path": ["public.orders", "public.legacy_orders"]
+```
+
+For fields, you use an array of alternative field objects:
 
 ```js
 // from
 "fields": ["user_id"]
 
-// which is actually equivalent to
-"fields": [{
-  "value": "user_id"
-}]
+// which is actually equivalent to this
+"fields": [
+  {"name": "user_id"}
+]
 
 // to
 "fields": [{
   "alternatives": [
-    "user_id", 
-    "user_guid"
+    {"name": "user_id"},
+    {"name": "user_guid"}
   ]
 }]
 ```
@@ -181,13 +191,13 @@ For optional, you add `"optional": true`:
 ```js
 // from
 {
-  "path": ["public", "foos"],
+  "path": "public.foos",
   "fields": ["*"]
 }
 
 // to
 {
-  "path": ["public", "foos"],
+  "path": "public.foos",
   "fields": ["*"],
   "optional": true
 }
@@ -196,10 +206,12 @@ For optional, you add `"optional": true`:
 "fields": ["user_id"]
 
 // to
-"fields": [{
-  "value": "user_id", 
-  "optional": true
-}]
+"fields": [
+  {
+    "name": "user_id",
+    "optional": true
+  }
+]
 ```
 
 For example, say you needed to temporarily support both a new orders table and the old ("legacy") orders table, in order to enable a migration. You could configure this like:
@@ -209,11 +221,9 @@ For example, say you needed to temporarily support both a new orders table and t
   "data": {
     "claims": [
       {
-        "path": {
-          "alternatives": [
-            ["public", "orders"],
-            ["public", "legacy_orders"]
-          ]
+        "path": [
+          "public.orders",
+          "public.legacy_orders"
         ],
         "fields": ["*"]
       }

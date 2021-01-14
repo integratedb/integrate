@@ -5,10 +5,12 @@ defmodule Integrate.Specification do
 
   import Ecto.Query, warn: false
 
+  alias Ecto.Multi
+
   alias Integrate.Repo
-  alias Integrate.Stakeholders
   alias Integrate.Util
 
+  alias Integrate.Stakeholders.Stakeholder
   alias Integrate.Specification.Spec
 
   @doc """
@@ -41,6 +43,57 @@ defmodule Integrate.Specification do
   def get_spec!(id), do: Repo.get!(Spec, id)
 
   @doc """
+  Gets either the claims or the notifications spec for a given stakeholder.
+
+  ## Examples
+
+      iex> get_spec(123, :claims)
+      %Spec{type: "CLAIMS"}
+
+      iex> get_spec(456, :notifications)
+      nil
+
+  """
+  def get_spec(stakeholder_id, type) do
+    Spec
+    |> Repo.get_by(stakeholder_id: stakeholder_id, type: Spec.types(type))
+  end
+
+  @doc """
+  Sets the claims or notifications spec for a given stakeholder.
+
+  ## Examples
+
+      iex> set_spec(stakeholder_id, :claims, attrs)
+      {:ok, %{spec: %Spec{} = spec}}
+
+      iex> update_spec(spec, %{field: bad_value})
+      {:error, :spec, %Ecto.Changeset{}}
+
+  """
+  def set_spec(stakeholder_id, type, %{"match" => _} = attrs) do
+    type_value = Spec.types(type)
+
+    previous_query =
+      from(s in Spec, where: s.stakeholder_id == ^stakeholder_id and s.type == ^type_value)
+
+    attrs =
+      attrs
+      |> Map.put("stakeholder_id", stakeholder_id)
+      |> Map.put("type", type_value)
+
+    Multi.new()
+    |> Multi.delete_all(:previous, previous_query)
+    |> Multi.insert(:spec, Spec.changeset(%Spec{}, attrs))
+    # |> Multi.insert_all(:claims, Claim, &generate_claims/1)
+    |> Repo.transaction()
+  end
+
+  defp generate_claims(%{spec: %Spec{id: spec_id, match: matches}}) do
+    throw({:NotImplemented, :set_claims, spec_id, matches})
+  end
+
+  @doc """
   Creates a spec.
 
   ## Examples
@@ -52,10 +105,10 @@ defmodule Integrate.Specification do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_spec(%Stakeholders.Stakeholder{id: stakeholder_id}, attrs) do
+  def create_spec(%Stakeholder{id: stakeholder_id}, attrs) do
     attrs =
       attrs
-      |> Util.coerce_atom_keys_to_string_keys()
+      |> Util.to_string_keys()
       |> Map.put("stakeholder_id", stakeholder_id)
 
     %Spec{}

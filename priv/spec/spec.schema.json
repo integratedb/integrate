@@ -1,0 +1,169 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://integratedb.org/spec.schema.json",
+  "title": "Specification",
+  "description": "Specify IntegrateDB Stakeholder claims and notifications.",
+  "type": "object",
+  "properties": {
+    "match": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "oneOf": [
+          {
+            "properties": {
+              "path": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]*\\.{1}\\*$"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]*\\.{1}\\*$"
+                    },
+                    "minItems": 1,
+                    "maxItems": 1
+                  }
+                ]
+              },
+              "fields": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\*$"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\*$"
+                    },
+                    "minItems": 1,
+                    "maxItems": 1
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "path": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]*\\.{1}[a-zA-Z_]{1}[a-zA-Z0-9_]*$"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]*\\.{1}[a-zA-Z_]{1}[a-zA-Z0-9_]*$"
+                    }
+                  }
+                ]
+              },
+              "fields": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "string",
+                    "pattern": "^\\*$"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\*$"
+                    },
+                    "minItems": 1,
+                    "maxItems": 1
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]*$"
+                    },
+                    "uniqueItems": true
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]*$"
+                        },
+                        "type": {
+                          "type": "string",
+                          "minLength": 3,
+                          "maxLength": 128
+                        },
+                        "minLength": {
+                          "type": "integer"
+                        },
+                        "optional": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": ["name"]
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "alternatives": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]*$"
+                              },
+                              "type": {
+                                "type": "string",
+                                "minLength": 3,
+                                "maxLength": 128
+                              },
+                              "minLength": {
+                                "type": "integer"
+                              },
+                              "optional": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": ["name"]
+                          },
+                          "uniqueItems": true
+                        },
+                        "optional": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": ["alternatives"]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "required": [
+          "path"
+        ]
+      }
+    }
+  },
+  "required": [
+    "match"
+  ]
+}

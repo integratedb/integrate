@@ -31,8 +31,8 @@ defmodule IntegrateWeb.Router do
         scope "/stakeholders" do
           resources "/", StakeholderController, except: [:new, :edit]
 
-          get "/:id/:type", StakeholderController, :show
-          put "/:id/:type", StakeholderController, :update
+          get "/:id/:type", SpecificationController, :show
+          put "/:id/:type", SpecificationController, :update
         end
       end
 
