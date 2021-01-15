@@ -1,6 +1,7 @@
 defmodule Integrate.Specification.Path do
   use Integrate, :schema
 
+  @derive {Jason.Encoder, only: [:alternatives]}
   embedded_schema do
     field :alternatives, {:array, :string}
   end

@@ -40,7 +40,7 @@ defmodule IntegrateWeb.SpecificationDataTest do
           },
           // - into this:
           {
-            // embeds_many :alternatives, Column
+            // embeds_many :alternatives, Cell
             alternatives: [
               {
                 name: "name",
@@ -66,7 +66,10 @@ defmodule IntegrateWeb.SpecificationDataTest do
   """
   use ExUnit.Case, async: true
 
+  alias Ecto.Changeset
+
   alias Integrate.Util
+  alias Integrate.Specification.Spec
   alias IntegrateWeb.SpecificationData, as: SpecData
 
   def validate(data) do
@@ -534,8 +537,8 @@ defmodule IntegrateWeb.SpecificationDataTest do
       data = build_data(fields: [%{name: "bar", type: "varchar", min_length: 24}])
 
       %{"match" => [%{"fields" => [field]}]} = expand(data)
-      %{"alternatives" => [col_spec], "optional" => false} = field
-      assert %{"name" => "bar", "type" => "varchar", "min_length" => 24} = col_spec
+      %{"alternatives" => [cell], "optional" => false} = field
+      assert %{"name" => "bar", "type" => "varchar", "min_length" => 24} = cell
     end
 
     test "fields map with optional true" do
@@ -563,7 +566,17 @@ defmodule IntegrateWeb.SpecificationDataTest do
   end
 
   def contract(data) do
-    data
+    attrs =
+      data
+      |> Map.put(:stakeholder_id, 1234)
+      |> Map.put(:type, Spec.types(:claims))
+
+    spec =
+      %Spec{}
+      |> Spec.changeset(attrs)
+      |> Changeset.apply_changes()
+
+    spec
     |> SpecData.contract()
   end
 

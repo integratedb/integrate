@@ -1,6 +1,7 @@
 defmodule Integrate.Specification.Match do
   use Integrate, :schema
 
+  @derive {Jason.Encoder, only: [:path, :fields]}
   embedded_schema do
     embeds_one :path, Specification.Path
     embeds_many :fields, Specification.Field
