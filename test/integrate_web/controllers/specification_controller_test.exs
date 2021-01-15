@@ -55,7 +55,7 @@ defmodule IntegrateWeb.SpecificationControllerTest do
         |> json_response(200)
         |> Map.get("data")
 
-      assert data == %{"type" => "claims", "match" => []}
+      assert data == %{"type" => "CLAIMS", "match" => []}
     end
   end
 end

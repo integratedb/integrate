@@ -561,4 +561,149 @@ defmodule IntegrateWeb.SpecificationDataTest do
       assert %{"alternatives" => [%{"name" => "foo"}], "optional" => true} = field
     end
   end
+
+  def contract(data) do
+    data
+    |> SpecData.contract()
+  end
+
+  describe "contract" do
+    test "path" do
+      data = %{
+        match: [
+          %{
+            path: %{
+              alternatives: ["public.foo"]
+            },
+            fields: []
+          }
+        ]
+      }
+
+      %{match: [%{path: path}]} = contract(data)
+      assert "public.foo" = path
+    end
+
+    test "path asterix" do
+      data = %{
+        match: [
+          %{
+            path: %{
+              alternatives: ["public.*"]
+            },
+            fields: []
+          }
+        ]
+      }
+
+      %{match: [%{path: path}]} = contract(data)
+      assert "public.*" = path
+    end
+
+    test "path alternatives" do
+      data = %{
+        match: [
+          %{
+            path: %{
+              alternatives: ["public.foo", "public.bar"]
+            },
+            fields: []
+          }
+        ]
+      }
+
+      %{match: [%{path: path}]} = contract(data)
+      assert ["public.foo", "public.bar"] = path
+    end
+
+    # fields: "*"
+    # fields: ["*"]
+    # fields: []
+    # fields: ["id"]
+    # fields: ["id", "uuid"]
+    # fields: [%{name: "bar"}]
+    # fields: [
+    #   %{name: "bar", type: "varchar", min_length: 24},
+    #   %{name: "baz", optional: true}
+    # ]
+    # fields: [
+    #   %{alternatives: [%{name: "foo"}, %{name: "bar"}]},
+    #   %{alternatives: [%{name: "baz"}], optional: true}
+    # ]
+
+    defp build_expanded_data(fields: fields) do
+      %{
+        match: [
+          %{
+            path: %{
+              alternatives: ["public.foo"]
+            },
+            fields: fields
+          }
+        ]
+      }
+    end
+
+    test "fields empty list" do
+      data = build_expanded_data(fields: [])
+
+      assert %{match: [%{fields: []}]} = contract(data)
+    end
+
+    test "fields asterix" do
+      expanded_field = %{alternatives: [%{name: "*"}], optional: false}
+      data = build_expanded_data(fields: [expanded_field])
+
+      %{match: [%{fields: [field]}]} = contract(data)
+      assert "*" = field
+    end
+
+    test "fields field names list" do
+      expanded_field = %{alternatives: [%{name: "id"}], optional: false}
+      data = build_expanded_data(fields: [expanded_field])
+
+      %{match: [%{fields: [field]}]} = contract(data)
+      assert "id" = field
+
+      a = %{alternatives: [%{name: "id"}], optional: false}
+      b = %{alternatives: [%{name: "uuid"}], optional: false}
+      data = build_expanded_data(fields: [a, b])
+
+      %{match: [%{fields: fields}]} = contract(data)
+      assert ["id", "uuid"] = fields
+    end
+
+    test "fields map with type spec" do
+      expanded_field = %{alternatives: [%{name: "id", type: "varchar"}], optional: false}
+      data = build_expanded_data(fields: [expanded_field])
+
+      %{match: [%{fields: [field]}]} = contract(data)
+      assert %{name: "id", type: "varchar"} = field
+    end
+
+    test "fields map with optional true" do
+      expanded_field = %{alternatives: [%{name: "id"}], optional: true}
+      data = build_expanded_data(fields: [expanded_field])
+
+      %{match: [%{fields: [field]}]} = contract(data)
+      assert %{name: "id", optional: true} = field
+    end
+
+
+    test "fields map with alternatives" do
+      expanded_field = %{alternatives: [%{name: "id"}, %{name: "uuid"}], optional: false}
+      data = build_expanded_data(fields: [expanded_field])
+
+      %{match: [%{fields: [field]}]} = contract(data)
+      assert %{alternatives: [%{name: "id"}, %{name: "uuid"}]} = field
+    end
+
+    test "fields map with optional alternatives" do
+      expanded_field = %{alternatives: [%{name: "id"}, %{name: "uuid"}], optional: true}
+      data = build_expanded_data(fields: [expanded_field])
+
+      %{match: [%{fields: [field]}]} = contract(data)
+      assert %{alternatives: [%{name: "id"}, %{name: "uuid"}], optional: true} = field
+    end
+  end
 end

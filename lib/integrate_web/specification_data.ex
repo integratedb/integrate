@@ -182,7 +182,77 @@ defmodule IntegrateWeb.SpecificationData do
       %{"match": [%{path" => "public.users", "fields" => ["id", "uuid"]}]}
 
   """
-  def contract(attrs) do
-    throw({:NotImplemented, :contract, attrs})
+  def contract(%{match: matches} = data) do
+    matches = Enum.map(matches, &contract_match/1)
+
+    %{data | match: matches}
+  end
+
+  defp contract_match(%{path: path, fields: fields} = match) do
+    %{match | path: contract_path(path), fields: contract_fields(fields)}
+  end
+
+  defp contract_path(%{alternatives: [path]}) do
+    path
+  end
+
+  defp contract_path(%{alternatives: paths}) do
+    paths
+  end
+
+  defp contract_fields(fields) do
+    fields
+    |> Enum.map(&contract_field/1)
+  end
+
+  defp contract_field(%{alternatives: [colspec], optional: optional}) do
+    colspec
+    |> contract_colspec(optional)
+  end
+
+  defp contract_field(%{alternatives: colspecs, optional: true}) do
+    %{alternatives: Enum.map(colspecs, &contract_colspec_into_map/1), optional: true}
+  end
+
+  defp contract_field(%{alternatives: colspecs, optional: false}) do
+    %{alternatives: Enum.map(colspecs, &contract_colspec_into_map/1)}
+  end
+
+  defp contract_colspec(colspec, true) do
+    colspec
+    |> Enum.into(%{})
+    |> Map.put(:optional, true)
+    |> contract_colspec()
+  end
+
+  defp contract_colspec(colspec, false) do
+    colspec
+    |> contract_colspec()
+  end
+
+  defp contract_colspec(%{name: name, type: nil, min_length: nil, optional: false}) do
+    name
+  end
+
+  defp contract_colspec(colspec) do
+    filtered =
+      colspec
+      |> Enum.reject(fn {_, v} -> is_nil(v) end)
+      |> Enum.filter(fn {_, v} -> v end)
+      |> Enum.into(%{})
+
+    case Map.keys(filtered) do
+      [:name] ->
+        filtered.name
+
+      _alt ->
+        filtered
+    end
+  end
+
+  defp contract_colspec_into_map(%{} = colspec) do
+    colspec
+    |> Enum.reject(fn {_, v} -> is_nil(v) end)
+    |> Enum.into(%{})
   end
 end

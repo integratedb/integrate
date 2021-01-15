@@ -4,7 +4,7 @@ defmodule IntegrateWeb.SpecificationView do
   alias IntegrateWeb.SpecificationData
 
   def render("show.json", %{spec: spec}) do
-    matches = SpecificationData.contract(spec.match)
+    %{match: matches} = SpecificationData.contract(spec)
 
     %{
       data: %{
