@@ -1,6 +1,7 @@
 defmodule IntegrateWeb.SpecificationView do
   use IntegrateWeb, :view
 
+  alias Integrate.Specification.Spec
   alias IntegrateWeb.SpecificationData
 
   def render("show.json", %{spec: spec}) do
@@ -17,7 +18,7 @@ defmodule IntegrateWeb.SpecificationView do
   def render("show_empty.json", %{type: type}) do
     %{
       data: %{
-        type: type,
+        type: Spec.types(type),
         match: []
       }
     }
