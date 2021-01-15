@@ -6,7 +6,7 @@ defmodule Integrate.Specification.Cell do
     field :name, :string
     field :type, :string
     field :min_length, :integer
-    field :is_nullable, :boolean, default: false
+    field :is_nullable, :boolean
   end
 
   @doc false

@@ -262,7 +262,6 @@ defmodule IntegrateWeb.SpecificationData do
     cellmap
     |> Enum.reject(fn {k, _} -> k == :id end)
     |> Enum.reject(fn {_, v} -> is_nil(v) end)
-    |> Enum.filter(fn {_, v} -> v end)
     |> Enum.into(%{})
   end
 end
