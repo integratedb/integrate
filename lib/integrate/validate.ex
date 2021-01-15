@@ -5,7 +5,13 @@ defmodule Integrate.Validate do
 
   alias Ecto.Changeset
 
+  @identifier_exp ~r/^[a-zA-Z_]{1}\w{0,63}$/
   @namespace_exp ~r/^\w{1,32}$/
+
+  def identifier(changeset, field) do
+    changeset
+    |> Changeset.validate_format(field, @identifier_exp)
+  end
 
   def validate_name(changeset, field) do
     changeset

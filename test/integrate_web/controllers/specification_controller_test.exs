@@ -2,6 +2,7 @@ defmodule IntegrateWeb.SpecificationControllerTest do
   use IntegrateWeb.ConnCase
 
   alias Integrate.Specification
+
   alias Integrate.Specification.{
     Spec,
     Match,
@@ -68,6 +69,7 @@ defmodule IntegrateWeb.SpecificationControllerTest do
 
     test "updates claims", %{conn: conn, stakeholder: stakeholder} do
       path = Routes.specification_path(conn, :update, stakeholder, :claims)
+
       payload = %{
         data: %{
           match: [

@@ -16,13 +16,14 @@
                 "oneOf": [
                   {
                     "type": "string",
-                    "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]*\\.{1}\\*$"
+                    "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}\\.{1}\\*$"
                   },
                   {
                     "type": "array",
                     "items": {
                       "type": "string",
-                      "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]*\\.{1}\\*$"
+                      "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}\\.{1}\\*$",
+                      "maxLength": 66
                     },
                     "minItems": 1,
                     "maxItems": 1
@@ -54,13 +55,13 @@
                 "oneOf": [
                   {
                     "type": "string",
-                    "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]*\\.{1}[a-zA-Z_]{1}[a-zA-Z0-9_]*$"
+                    "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}\\.{1}[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}$"
                   },
                   {
                     "type": "array",
                     "items": {
                       "type": "string",
-                      "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]*\\.{1}[a-zA-Z_]{1}[a-zA-Z0-9_]*$"
+                      "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}\\.{1}[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}$"
                     }
                   }
                 ]
@@ -87,7 +88,7 @@
                     "type": "array",
                     "items": {
                       "type": "string",
-                      "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]*$"
+                      "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}$"
                     },
                     "uniqueItems": true
                   },
@@ -98,7 +99,7 @@
                       "properties": {
                         "name": {
                           "type": "string",
-                          "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]*$"
+                          "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}$"
                         },
                         "type": {
                           "type": "string",
@@ -127,7 +128,7 @@
                             "properties": {
                               "name": {
                                 "type": "string",
-                                "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]*$"
+                                "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}$"
                               },
                               "type": {
                                 "type": "string",

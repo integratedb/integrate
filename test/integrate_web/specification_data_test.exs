@@ -702,7 +702,6 @@ defmodule IntegrateWeb.SpecificationDataTest do
       assert %{name: "id", optional: true} = field
     end
 
-
     test "fields map with alternatives" do
       expanded_field = %{alternatives: [%{name: "id"}, %{name: "uuid"}], optional: false}
       data = build_expanded_data(fields: [expanded_field])

@@ -16,7 +16,7 @@ defmodule Integrate.Stakeholders.Stakeholder do
   def changeset(stakeholder, attrs) do
     stakeholder
     |> cast(attrs, [:name, :user_id])
-    |> validate_required([:name, :user_id])
+    |> validate_required([:name])
     |> Validate.normalise_name(:name)
     |> Validate.validate_name(:name)
     |> unique_constraint(:name)

@@ -25,4 +25,26 @@ defmodule Integrate.Fixtures do
 
     %{stakeholder: stakeholder, stakeholder_db_user: db_user}
   end
+
+  def create_spec(%{stakeholder: stakeholder}) do
+    attrs = %{
+      type: "CLAIMS",
+      match: []
+    }
+
+    {:ok, spec} = Specification.create_spec(stakeholder, attrs)
+
+    %{spec: spec}
+  end
+
+  def create_claim(%{spec: spec}) do
+    attrs = %{
+      schema: "public",
+      table: "foo"
+    }
+
+    {:ok, claim} = Claims.create_claim(spec, attrs)
+
+    %{claim: claim}
+  end
 end

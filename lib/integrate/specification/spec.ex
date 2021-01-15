@@ -1,10 +1,10 @@
 defmodule Integrate.Specification.Spec do
   @moduledoc """
-  User provided configuration for claims or notifications.
+  User provided specification config for claims or notifications.
 
   This records the original user input, for example `fields: ["*"]` style
   instructions, before the values are parsed and expanded into structured
-  `Integrate.Claims.Claim`s and `Integrate.Claims.Field`s.
+  `Integrate.Claims.Claim`s and `Integrate.Claims.Column`s.
   """
   use Integrate, :schema
 
@@ -31,7 +31,7 @@ defmodule Integrate.Specification.Spec do
   def changeset(spec, attrs) do
     spec
     |> cast(attrs, [:type, :stakeholder_id])
-    |> validate_required([:type, :stakeholder_id])
+    |> validate_required([:type])
     |> validate_inclusion(:type, Map.values(@types))
     |> cast_embed(:match)
     |> assoc_constraint(:stakeholder)
