@@ -38,6 +38,12 @@ defmodule Integrate.Claims do
   """
   def get_claim!(id), do: Repo.get!(Claim, id)
 
+  def get_by_spec(%Spec{} = spec) do
+    spec = Repo.preload(spec, claims: [:columns])
+
+    spec.claims
+  end
+
   @doc """
   Creates a claim.
 
@@ -58,6 +64,34 @@ defmodule Integrate.Claims do
     %Claim{}
     |> Claim.changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc """
+  Initialises a `claim` and its child `columns` at the same time.
+
+  Returns a changeset.
+
+  ## Examples
+
+      iex> init_claim_with_columns([%Column{}], %{field: value})
+      %Ecto.Changeset{}
+
+      iex> init_claim_with_columns(%Spec{} = spec, [%Column{}], %{field: value})
+      %Ecto.Changeset{}
+
+  """
+  def init_claim_with_columns(columns, attrs) do
+    %Claim{}
+    |> Claim.changeset_with_columns(columns, attrs)
+  end
+
+  def init_claim_with_columns(%Spec{id: spec_id}, columns, attrs) do
+    attrs =
+      attrs
+      |> Map.put(:spec_id, spec_id)
+
+    %Claim{}
+    |> Claim.changeset_with_columns(columns, attrs)
   end
 
   @doc """
@@ -158,6 +192,20 @@ defmodule Integrate.Claims do
     %Column{}
     |> Column.changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc """
+  Initialise a column.
+
+  ## Examples
+
+      iex> init_column(%{field: value})
+      %Ecto.Changeset{}
+
+  """
+  def init_column(attrs \\ %{}) do
+    %Column{}
+    |> Column.changeset(attrs)
   end
 
   @doc """

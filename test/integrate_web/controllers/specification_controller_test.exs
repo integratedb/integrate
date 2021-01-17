@@ -10,6 +10,13 @@ defmodule IntegrateWeb.SpecificationControllerTest do
     Cell
   }
 
+  alias Integrate.Claims
+
+  alias Integrate.Claims.{
+    Claim,
+    Column
+  }
+
   @empty_matches %{
     match: []
   }
@@ -54,7 +61,7 @@ defmodule IntegrateWeb.SpecificationControllerTest do
       |> assert_requires_auth()
     end
 
-    test "updates empty claims", %{conn: conn, stakeholder: stakeholder} do
+    test "with empty claims", %{conn: conn, stakeholder: stakeholder} do
       path = Routes.specification_path(conn, :update, stakeholder, :claims)
       payload = %{data: @empty_matches}
 
@@ -65,17 +72,18 @@ defmodule IntegrateWeb.SpecificationControllerTest do
         |> Map.get("data")
 
       assert %{"type" => "CLAIMS", "match" => []} = data
+      assert %Spec{match: []} = Specification.get_spec(stakeholder.id, :claims)
     end
 
-    test "updates claims", %{conn: conn, stakeholder: stakeholder} do
+    test "valid claims sets the spec", %{conn: conn, stakeholder: stakeholder} do
       path = Routes.specification_path(conn, :update, stakeholder, :claims)
 
       payload = %{
         data: %{
           match: [
             %{
-              path: "public.foo",
-              fields: ["id", "uid", "guid"]
+              path: "integratedb.foos",
+              fields: ["name", "inserted_at"]
             }
           ]
         }
@@ -88,12 +96,76 @@ defmodule IntegrateWeb.SpecificationControllerTest do
         |> Map.get("data")
 
       %{"type" => "CLAIMS", "match" => [match]} = data
-      assert %{"fields" => ["id", "uid", "guid"], "path" => "public.foo"} = match
+      assert %{"fields" => ["name", "inserted_at"], "path" => "integratedb.foos"} = match
 
-      %Spec{match: [%Match{fields: [a, b, c]}]} = Specification.get_spec(stakeholder.id, :claims)
-      assert %Field{alternatives: [%Cell{name: "id"}]} = a
-      assert %Field{alternatives: [%Cell{name: "uid"}]} = b
-      assert %Field{alternatives: [%Cell{name: "guid"}]} = c
+      %Spec{match: [%Match{fields: [a, b]}]} = Specification.get_spec(stakeholder.id, :claims)
+      assert %Field{alternatives: [%Cell{name: "name"}]} = a
+      assert %Field{alternatives: [%Cell{name: "inserted_at"}]} = b
+    end
+
+    test "valid claims also saves claims", %{conn: conn, stakeholder: stakeholder} do
+      path = Routes.specification_path(conn, :update, stakeholder, :claims)
+
+      payload = %{
+        data: %{
+          match: [
+            %{
+              path: "integratedb.foos",
+              fields: ["name", "inserted_at"]
+            }
+          ]
+        }
+      }
+
+      _resp =
+        conn
+        |> put(path, payload)
+        |> json_response(200)
+
+      claims =
+        stakeholder.id
+        |> Specification.get_spec(:claims)
+        |> Claims.get_by_spec()
+
+      assert [%Claim{schema: "integratedb", table: "foos", columns: columns}] = claims
+      assert [%Column{name: "name"}, %Column{name: "inserted_at"}] = columns
+    end
+
+    test "invalid claims returns column errors", %{conn: conn, stakeholder: stakeholder} do
+      path = Routes.specification_path(conn, :update, stakeholder, :claims)
+
+      payload = %{
+        data: %{
+          match: [
+            %{
+              path: "integratedb.foos",
+              fields: [
+                %{
+                  name: "name",
+                  type: "int"
+                },
+                %{
+                  name: "insortulated_at"
+                }
+              ]
+            }
+          ]
+        }
+      }
+
+      errors =
+        conn
+        |> put(path, payload)
+        |> json_response(422)
+        |> Map.get("errors")
+
+      assert %{"claims" => [%{"columns" => [a, b]}]} = errors
+
+      assert %{"type" => ["path: `integratedb.foos`, field: `name`: " <> m]} = a
+      assert "specified value `int` does not match existing column value `character varying`." = m
+
+      assert %{"name" => ["path: `integratedb.foos`, field: `insortulated_at`: " <> mb]} = b
+      assert "specified field `insortulated_at` does not exist in the database." = mb
     end
   end
 end

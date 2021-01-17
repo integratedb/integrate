@@ -270,6 +270,19 @@ defmodule IntegrateWeb.SpecificationDataTest do
       assert :ok = validate(data)
     end
 
+    test "asterix must be the only field" do
+      data = %{
+        match: [
+          %{
+            path: "public.foo",
+            fields: ["name", "*"]
+          }
+        ]
+      }
+
+      assert {:error, [{_, "#/match/0"}]} = validate(data)
+    end
+
     test "fields cannot be a single column name" do
       data = %{
         match: [

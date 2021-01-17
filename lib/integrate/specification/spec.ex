@@ -22,6 +22,8 @@ defmodule Integrate.Specification.Spec do
     field :type, :string
 
     embeds_many :match, Specification.Match
+    has_many :claims, Claims.Claim
+
     belongs_to :stakeholder, Stakeholders.Stakeholder
 
     timestamps()

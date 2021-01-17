@@ -27,6 +27,19 @@ defmodule Integrate.Claims.Claim do
   def changeset(claim, attrs) do
     claim
     |> cast(attrs, [:schema, :table, :spec_id])
+    |> shared_validations()
+  end
+
+  @doc false
+  def changeset_with_columns(claim, columns, attrs) do
+    claim
+    |> cast(attrs, [:schema, :table, :spec_id])
+    |> put_assoc(:columns, columns)
+    |> shared_validations()
+  end
+
+  defp shared_validations(changeset) do
+    changeset
     |> validate_required([:schema, :table])
     |> Validate.identifier(:schema)
     |> Validate.identifier(:table)
