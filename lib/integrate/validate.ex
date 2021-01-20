@@ -40,4 +40,36 @@ defmodule Integrate.Validate do
         raise "Invalid namespace -- must match `#{Regex.source(@namespace_exp)}`."
     end
   end
+
+  def starts_with_same_schema_name(changeset, field) do
+    changeset
+    |> Changeset.validate_change(field, &validate_same_schema_name/2)
+  end
+
+  defp validate_same_schema_name(_, nil), do: []
+  defp validate_same_schema_name(_, []), do: []
+
+  defp validate_same_schema_name(field, [head | tail]) do
+    [schema_name, _] = String.split(head, ".")
+
+    case Enum.find(tail, &does_not_match_schema_name(&1, schema_name)) do
+      nil ->
+        []
+
+      path ->
+        msg = "Path alternatives `#{head}` and `#{path}` must share the same schema."
+
+        [{field, msg}]
+    end
+  end
+
+  defp does_not_match_schema_name(path, schema_name) do
+    case String.split(path, ".") do
+      [^schema_name, _] ->
+        false
+
+      _ ->
+        true
+    end
+  end
 end

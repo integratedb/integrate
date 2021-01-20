@@ -11,6 +11,7 @@ defmodule Integrate.Specification.Path do
     schema
     |> cast(attrs, [:alternatives])
     |> validate_required(:alternatives)
+    |> Validate.starts_with_same_schema_name(:alternatives)
 
     # |> validate_format()
   end
