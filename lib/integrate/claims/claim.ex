@@ -14,10 +14,9 @@ defmodule Integrate.Claims.Claim do
   use Integrate, :schema
 
   schema "claims" do
-    field :schema, :string
-    field :table, :string
+    field :optional, :boolean, default: false
 
-    has_many :columns, Claims.Column
+    has_many :alternatives, Claims.ClaimAlternative
     belongs_to :spec, Specification.Spec
 
     timestamps()
@@ -26,23 +25,21 @@ defmodule Integrate.Claims.Claim do
   @doc false
   def changeset(claim, attrs) do
     claim
-    |> cast(attrs, [:schema, :table, :spec_id])
+    |> cast(attrs, [:optional, :spec_id])
     |> shared_validations()
   end
 
   @doc false
-  def changeset_with_columns(claim, columns, attrs) do
+  def changeset_with_alternatives(claim, alternatives, attrs) do
     claim
-    |> cast(attrs, [:schema, :table, :spec_id])
-    |> put_assoc(:columns, columns)
+    |> cast(attrs, [:optional, :spec_id])
+    |> put_assoc(:alternatives, alternatives)
     |> shared_validations()
   end
 
   defp shared_validations(changeset) do
     changeset
-    |> validate_required([:schema, :table])
-    |> Validate.identifier(:schema)
-    |> Validate.identifier(:table)
+    |> validate_required([:optional])
     |> assoc_constraint(:spec)
   end
 end

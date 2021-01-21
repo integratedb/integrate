@@ -6,15 +6,18 @@ defmodule IntegrateWeb.SpecificationControllerTest do
   alias Integrate.Specification.{
     Spec,
     Match,
+    MatchAlternative,
     Field,
-    Cell
+    FieldAlternative
   }
 
   alias Integrate.Claims
 
   alias Integrate.Claims.{
     Claim,
-    Column
+    ClaimAlternative,
+    Column,
+    ColumnAlternative
   }
 
   @empty_matches %{
@@ -95,12 +98,15 @@ defmodule IntegrateWeb.SpecificationControllerTest do
         |> json_response(200)
         |> Map.get("data")
 
-      %{"type" => "CLAIMS", "match" => [match]} = data
+      # This is the contracted data response.
+      assert %{"type" => "CLAIMS", "match" => [match]} = data
       assert %{"fields" => ["name", "inserted_at"], "path" => "integratedb.foos"} = match
 
-      %Spec{match: [%Match{fields: [a, b]}]} = Specification.get_spec(stakeholder.id, :claims)
-      assert %Field{alternatives: [%Cell{name: "name"}]} = a
-      assert %Field{alternatives: [%Cell{name: "inserted_at"}]} = b
+      # This is the expanded spec data we saved.
+      assert %Spec{match: [match]} = Specification.get_spec(stakeholder.id, :claims)
+      assert %Match{alternatives: [%MatchAlternative{fields: [a, b]}]} = match
+      assert %Field{alternatives: [%FieldAlternative{name: "name"}]} = a
+      assert %Field{alternatives: [%FieldAlternative{name: "inserted_at"}]} = b
     end
 
     test "valid claims also saves claims", %{conn: conn, stakeholder: stakeholder} do
@@ -127,8 +133,10 @@ defmodule IntegrateWeb.SpecificationControllerTest do
         |> Specification.get_spec(:claims)
         |> Claims.get_by_spec()
 
-      assert [%Claim{schema: "integratedb", table: "foos", columns: columns}] = claims
-      assert [%Column{name: "name"}, %Column{name: "inserted_at"}] = columns
+      assert [%Claim{alternatives: [claim_alt]}] = claims
+      assert %ClaimAlternative{schema: "integratedb", table: "foos", columns: [a, b]} = claim_alt
+      assert %Column{alternatives: [%ColumnAlternative{name: "name"}]} = a
+      assert %Column{alternatives: [%ColumnAlternative{name: "inserted_at"}]} = b
     end
 
     test "invalid claims returns column errors", %{conn: conn, stakeholder: stakeholder} do
@@ -159,7 +167,8 @@ defmodule IntegrateWeb.SpecificationControllerTest do
         |> json_response(422)
         |> Map.get("errors")
 
-      assert %{"claims" => [%{"columns" => [a, b]}]} = errors
+      assert %{"claims" => [%{"alternatives" => [claim_alts]}]} = errors
+      assert %{"columns" => [%{"alternatives" => [a]}, %{"alternatives" => [b]}]} = claim_alts
 
       assert %{"type" => ["path: `integratedb.foos`, field: `name`: " <> m]} = a
       assert "specified value `int` does not match existing column value `character varying`." = m

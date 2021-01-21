@@ -5,7 +5,7 @@ defmodule Integrate.Specification.Field do
   embedded_schema do
     field :optional, :boolean, default: false
 
-    embeds_many :alternatives, Specification.Cell
+    embeds_many :alternatives, Specification.FieldAlternative
   end
 
   @doc false

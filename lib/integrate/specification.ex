@@ -17,9 +17,10 @@ defmodule Integrate.Specification do
   alias Integrate.Specification.{
     Spec,
     Match,
+    MatchAlternative,
     Path,
     Field,
-    Cell
+    FieldAlternative
   }
 
   @doc """
@@ -115,20 +116,21 @@ defmodule Integrate.Specification do
 
   defp generate_claims(%Spec{match: matches}) do
     matches
-    |> Enum.reduce([], &match_claims/2)
+    |> Enum.reduce([], &accumulate_claims/2)
     |> Enum.reverse()
   end
 
-  defp match_claims(%Match{path: %Path{alternatives: paths}, fields: fields}, acc) do
-    # The `paths` are reversed so we can pattern match their ending.
-    paths
-    |> Enum.map(&String.reverse/1)
-    |> Enum.reduce(acc, &path_claims(&1, fields, &2))
-  end
-
-  defp path_claims("*." <> reversed_schema_name, fields, acc) do
-    schema_name = String.reverse(reversed_schema_name)
-
+  # If the match is for a wildcard path, then unpack the wildcard
+  # into all matching tables and accumulate claims for all of them.
+  defp accumulate_claims(
+         %Match{
+           alternatives: [
+             %MatchAlternative{path: %Path{schema: schema_name, table: "*"} = path} = match_alt
+           ],
+           optional: optional
+         } = match,
+         acc
+       ) do
     query =
       from c in "columns",
         prefix: "information_schema",
@@ -139,24 +141,31 @@ defmodule Integrate.Specification do
     query
     |> Repo.all()
     |> Enum.reduce(acc, fn table_name, acc ->
-      reversed_table_name = String.reverse(table_name)
-      reversed_path_str = "#{reversed_table_name}.#{reversed_schema_name}"
+      path = %{path | table: table_name}
+      match_alt = %{match_alt | path: path}
+      match = %{match | alternatives: [match_alt], optional: optional}
 
-      path_claims(reversed_path_str, fields, acc)
+      accumulate_claims(match, acc)
     end)
   end
 
-  defp path_claims(reversed_path_str, fields, acc) do
-    [schema_name, table_name] =
-      reversed_path_str
-      |> String.reverse()
-      |> String.split(".")
-
+  defp accumulate_claims(%Match{alternatives: alternatives, optional: optional}, acc) do
     attrs = %{
-      schema: schema_name,
-      table: table_name
+      optional: optional
     }
 
+    claim =
+      alternatives
+      |> Enum.map(&init_claim_alternative/1)
+      |> Claims.init_claim_with_alternatives(attrs)
+
+    [claim | acc]
+  end
+
+  defp init_claim_alternative(%MatchAlternative{
+         path: %Path{schema: schema_name, table: table_name} = path,
+         fields: fields
+       }) do
     query =
       from c in "columns",
         prefix: "information_schema",
@@ -176,15 +185,12 @@ defmodule Integrate.Specification do
       |> Repo.all()
       |> Enum.reduce(%{}, &build_column_map/2)
 
-    columns =
-      fields
-      |> Enum.reject(fn x -> x.optional end)
-      |> Enum.reduce([], &generate_columns(&1, column_map, attrs, &2))
-      |> Enum.reverse()
+    attrs = Map.from_struct(path)
 
-    claim = Claims.init_claim_with_columns(columns, attrs)
-
-    [claim | acc]
+    fields
+    |> Enum.reduce([], &accumulate_columns(&1, column_map, path, &2))
+    |> Enum.reverse()
+    |> Claims.init_claim_alternative_with_columns(attrs)
   end
 
   defp build_column_map({name, type, char_max_length, num_precision, is_nullable}, acc) do
@@ -213,28 +219,75 @@ defmodule Integrate.Specification do
     |> Map.put(name, attrs)
   end
 
-  # If field is asterix, use the column map to expand and use the data value.
-  defp generate_columns(%Field{alternatives: [%Cell{name: "*"}]}, column_map, _, acc) do
+  # If field is asterisk, use the column map to expand and use the data value.
+  defp accumulate_columns(
+         %Field{alternatives: [%FieldAlternative{name: "*"}], optional: optional},
+         column_map,
+         _,
+         acc
+       ) do
     column_map
     |> Enum.reduce(acc, fn {name, db} ->
-      accumulate_column(name, db.type, db.max_length, db.is_nullable, acc)
+      alt_attrs = %{
+        name: name,
+        type: db.type,
+        min_length: db.max_length,
+        is_nullable: db.is_nullable
+      }
+
+      alternatives = [
+        Claims.init_column_alternative(alt_attrs)
+      ]
+
+      col_attrs = %{
+        optional: optional
+      }
+
+      column =
+        alternatives
+        |> Claims.init_column_with_alternatives(col_attrs)
+
+      [column | acc]
     end)
   end
 
-  defp generate_columns(%Field{alternatives: cells}, column_map, path_attrs, acc) do
-    cells
-    |> Enum.reduce(acc, &generate_column(&1, column_map, path_attrs, &2))
+  defp accumulate_columns(%Field{alternatives: alternatives, optional: optional}, column_map, %Path{} = path, acc) do
+    attrs = %{
+      optional: optional
+    }
+
+    column =
+      alternatives
+      |> Enum.map(&init_column_alternative(&1, column_map, path))
+      |> Claims.init_column_with_alternatives(attrs)
+
+    [column | acc]
   end
 
-  defp generate_column(%Cell{name: name} = cell, column_map, path_attrs, acc) do
+  defp init_column_alternative(%FieldAlternative{name: name} = field_alt, column_map, %Path{
+         schema: schema_name,
+         table: table_name
+       }) do
     with {:ok, db} <- get_matching_column(column_map, name),
-         {:ok, type} <- get_column_type(cell, db),
-         {:ok, min_length} <- get_min_length(cell, db),
-         {:ok, is_nullable} <- get_is_nullable(cell, db) do
-      accumulate_column(name, type, min_length, is_nullable, acc)
+         {:ok, type} <- get_column_type(field_alt, db),
+         {:ok, min_length} <- get_min_length(field_alt, db),
+         {:ok, is_nullable} <- get_is_nullable(field_alt, db) do
+      attrs = %{
+        name: name,
+        type: type,
+        min_length: min_length,
+        is_nullable: is_nullable
+      }
+
+      Claims.init_column_alternative(attrs)
     else
-      err ->
-        accumulate_column_error(cell, err, path_attrs, acc)
+      {:error, key, message} ->
+        message =
+          "path: `#{schema_name}.#{table_name}`, field: `#{name}`: #{String.trim(message)}"
+
+        %Claims.ColumnAlternative{}
+        |> Changeset.change()
+        |> Changeset.add_error(key, message)
     end
   end
 
@@ -252,13 +305,13 @@ defmodule Integrate.Specification do
     end
   end
 
-  defp get_column_type(%Cell{} = cell, db) do
-    case cell.type do
+  defp get_column_type(%FieldAlternative{type: type}, db) do
+    case type do
       nil ->
         {:ok, db.type}
 
       val ->
-        case cell_type_matches(val, db.type) do
+        case field_alt_type_matches(val, db.type) do
           true ->
             {:ok, val}
 
@@ -272,13 +325,13 @@ defmodule Integrate.Specification do
     end
   end
 
-  defp get_min_length(%Cell{} = cell, db) do
-    case cell.min_length do
+  defp get_min_length(%FieldAlternative{min_length: min_length}, db) do
+    case min_length do
       nil ->
         {:ok, db.max_length}
 
       val ->
-        case cell_min_length_matches(val, db.max_length) do
+        case field_alt_min_length_matches(val, db.max_length) do
           true ->
             {:ok, val}
 
@@ -292,8 +345,8 @@ defmodule Integrate.Specification do
     end
   end
 
-  defp get_is_nullable(%Cell{} = cell, db) do
-    case cell.is_nullable do
+  defp get_is_nullable(%FieldAlternative{is_nullable: is_nullable}, db) do
+    case is_nullable do
       nil ->
         {:ok, db.is_nullable}
 
@@ -315,41 +368,14 @@ defmodule Integrate.Specification do
   # This is not very sophisticated but we need to be able to match directly in
   # the migration validation query, so let's just start with a rigid direct match
   # to get the ball rolling. In future, we can implement aliases, etc.
-  defp cell_type_matches(cell_type, db_type) do
-    cell_type == db_type
+  defp field_alt_type_matches(field_alt_type, db_type) do
+    field_alt_type == db_type
   end
 
   # The idea is to protect from truncating strings / losing precision. So the
   # spec says "must be at least this max length".
-  defp cell_min_length_matches(cell_min_length, db_max_length) do
-    cell_min_length <= db_max_length
-  end
-
-  defp accumulate_column(name, type, min_length, is_nullable, acc) do
-    attrs = %{
-      name: name,
-      type: type,
-      min_length: min_length,
-      is_nullable: is_nullable
-    }
-
-    [Claims.init_column(attrs) | acc]
-  end
-
-  defp accumulate_column_error(
-         %Cell{name: name},
-         {:error, key, message},
-         %{schema: schema, table: table},
-         acc
-       ) do
-    message = "path: `#{schema}.#{table}`, field: `#{name}`: #{String.trim(message)}"
-
-    changeset =
-      %Claims.Column{}
-      |> Changeset.change()
-      |> Changeset.add_error(key, message)
-
-    [changeset | acc]
+  defp field_alt_min_length_matches(field_alt_min_length, db_max_length) do
+    field_alt_min_length <= db_max_length
   end
 
   @doc """

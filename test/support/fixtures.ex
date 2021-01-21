@@ -38,13 +38,29 @@ defmodule Integrate.Fixtures do
   end
 
   def create_claim(%{spec: spec}) do
+    attrs = %{}
+
+    {:ok, claim} = Claims.create_claim(spec, attrs)
+
+    %{claim: claim}
+  end
+
+  def create_claim_alternative(%{claim: claim}) do
     attrs = %{
       schema: "public",
       table: "foo"
     }
 
-    {:ok, claim} = Claims.create_claim(spec, attrs)
+    {:ok, claim_alt} = Claims.create_claim_alternative(claim, attrs)
 
-    %{claim: claim}
+    %{claim_alternative: claim_alt}
+  end
+
+  def create_column(%{claim_alternative: claim_alternative}) do
+    attrs = %{}
+
+    {:ok, column} = Claims.create_column(claim_alternative, attrs)
+
+    %{column: column}
   end
 end

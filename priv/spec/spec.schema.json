@@ -3,6 +3,133 @@
   "$id": "https://integratedb.org/spec.schema.json",
   "title": "Specification",
   "description": "Specify IntegrateDB Stakeholder claims and notifications.",
+  "definitions": {
+    "pathName": {
+      "type": "string",
+      "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}\\.{1}[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}$"
+    },
+    "pathAsterisk": {
+      "type": "string",
+      "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}\\.{1}\\*$"
+    },
+    "allFields": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^\\*$"
+      },
+      "minItems": 1,
+      "maxItems": 1
+    },
+    "fieldName": {
+      "type": "string",
+      "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}$"
+    },
+    "fieldType": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 128
+    },
+    "fieldMinLength": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "fieldIsNullable": {
+      "type": "boolean"
+    },
+    "fieldObject": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/fieldName"
+        },
+        "type": {
+          "$ref": "#/definitions/fieldType"
+        },
+        "min_length": {
+          "$ref": "#/definitions/fieldMinLength"
+        },
+        "is_nullable": {
+          "$ref": "#/definitions/fieldIsNullable"
+        },
+        "optional": {
+          "type": "boolean"
+        }
+      },
+      "required": ["name"],
+      "additionalProperties": false
+    },
+    "fieldAlternatives": {
+      "type": "object",
+      "properties": {
+        "alternatives": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/fieldName"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "$ref": "#/definitions/fieldName"
+                  },
+                  "type": {
+                    "$ref": "#/definitions/fieldType"
+                  },
+                  "min_length": {
+                    "$ref": "#/definitions/fieldMinLength"
+                  },
+                  "is_nullable": {
+                    "$ref": "#/definitions/fieldIsNullable"
+                  }
+                },
+                "required": ["name"],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "uniqueItems": true
+        },
+        "optional": {
+          "type": "boolean"
+        }
+      },
+      "required": ["alternatives"],
+      "additionalProperties": false
+    },
+    "fieldArray": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#/definitions/fieldName"
+          },
+          {
+            "$ref": "#/definitions/fieldObject"
+          },
+          {
+            "$ref": "#/definitions/fieldAlternatives"
+          }
+        ]
+      },
+      "uniqueItems": true
+    },
+    "fieldsValue": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/definitions/allFields"
+        },
+        {
+          "$ref": "#/definitions/fieldArray"
+        }
+      ]
+    }
+  },
   "type": "object",
   "properties": {
     "match": {
@@ -13,158 +140,75 @@
           {
             "properties": {
               "path": {
-                "oneOf": [
-                  {
-                    "type": "string",
-                    "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}\\.{1}\\*$"
-                  },
-                  {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}\\.{1}\\*$",
-                      "maxLength": 66
-                    },
-                    "minItems": 1,
-                    "maxItems": 1
-                  }
-                ]
+                "$ref": "#/definitions/pathAsterisk"
               },
               "fields": {
-                "oneOf": [
-                  {
-                    "type": "string",
-                    "pattern": "^\\*$"
-                  },
-                  {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "pattern": "^\\*$"
-                    },
-                    "minItems": 1,
-                    "maxItems": 1
-                  }
-                ]
+                "$ref": "#/definitions/allFields"
+              },
+              "optional": {
+                "type": "boolean"
               }
-            }
+            },
+            "required": [
+              "path",
+              "fields"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "path": {
+                "$ref": "#/definitions/pathName"
+              },
+              "fields": {
+                "$ref": "#/definitions/fieldsValue"
+              },
+              "optional": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "additionalProperties": false
           },
           {
             "properties": {
-              "path": {
-                "oneOf": [
-                  {
-                    "type": "string",
-                    "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}\\.{1}[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}$"
-                  },
-                  {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}\\.{1}[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}$"
+              "alternatives": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "$ref": "#/definitions/pathName"
+                    },
+                    "fields": {
+                      "$ref": "#/definitions/fieldsValue"
                     }
-                  }
-                ]
+                  },
+                  "required": [
+                    "path"
+                  ],
+                  "additionalProperties": false
+                },
+                "uniqueItems": true
               },
-              "fields": {
-                "oneOf": [
-                  {
-                    "type": "null"
-                  },
-                  {
-                    "type": "string",
-                    "pattern": "^\\*$"
-                  },
-                  {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "pattern": "^\\*$"
-                    },
-                    "minItems": 1,
-                    "maxItems": 1
-                  },
-                  {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}$"
-                    },
-                    "uniqueItems": true
-                  },
-                  {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}$"
-                        },
-                        "type": {
-                          "type": "string",
-                          "minLength": 3,
-                          "maxLength": 128
-                        },
-                        "minLength": {
-                          "type": "integer"
-                        },
-                        "optional": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": ["name"]
-                    }
-                  },
-                  {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "alternatives": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "name": {
-                                "type": "string",
-                                "pattern": "^[a-zA-Z_]{1}[a-zA-Z0-9_]{0,63}$"
-                              },
-                              "type": {
-                                "type": "string",
-                                "minLength": 3,
-                                "maxLength": 128
-                              },
-                              "minLength": {
-                                "type": "integer"
-                              },
-                              "optional": {
-                                "type": "boolean"
-                              }
-                            },
-                            "required": ["name"]
-                          },
-                          "uniqueItems": true
-                        },
-                        "optional": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": ["alternatives"]
-                    }
-                  }
-                ]
+              "optional": {
+                "type": "boolean"
               }
-            }
+            },
+            "required": [
+              "alternatives"
+            ],
+            "additionalProperties": false
           }
-        ],
-        "required": [
-          "path"
         ]
       }
     }
   },
   "required": [
     "match"
-  ]
+  ],
+  "additionalProperties": false
 }

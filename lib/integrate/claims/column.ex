@@ -1,16 +1,14 @@
 defmodule Integrate.Claims.Column do
   @moduledoc """
-  Column specs that the information schema must match.
+  One or more alternative column specs.
   """
   use Integrate, :schema
 
   schema "columns" do
-    field :name, :string
-    field :type, :string
-    field :min_length, :integer
-    field :is_nullable, :boolean
+    field :optional, :boolean, default: false
 
-    belongs_to :claim, Claims.Claim
+    has_many :alternatives, Claims.ColumnAlternative
+    belongs_to :claim_alternative, Claims.ClaimAlternative
 
     timestamps()
   end
@@ -18,9 +16,21 @@ defmodule Integrate.Claims.Column do
   @doc false
   def changeset(column, attrs) do
     column
-    |> cast(attrs, [:name, :type, :min_length, :is_nullable, :claim_id])
-    |> validate_required([:name, :type, :is_nullable])
-    |> Validate.identifier(:name)
-    |> assoc_constraint(:claim)
+    |> cast(attrs, [:optional, :claim_alternative_id])
+    |> shared_validations()
+  end
+
+  @doc false
+  def changeset_with_alternatives(column, alternatives, attrs) do
+    column
+    |> cast(attrs, [:optional, :claim_alternative_id])
+    |> put_assoc(:alternatives, alternatives)
+    |> shared_validations()
+  end
+
+  defp shared_validations(changeset) do
+    changeset
+    |> validate_required([:optional])
+    |> assoc_constraint(:claim_alternative)
   end
 end

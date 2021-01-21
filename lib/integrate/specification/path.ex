@@ -1,18 +1,18 @@
 defmodule Integrate.Specification.Path do
   use Integrate, :schema
 
-  @derive {Jason.Encoder, only: [:alternatives]}
+  @derive {Jason.Encoder, only: [:schema, :table]}
   embedded_schema do
-    field :alternatives, {:array, :string}
+    field :schema, :string
+    field :table, :string
   end
 
   @doc false
   def changeset(schema, attrs) do
     schema
-    |> cast(attrs, [:alternatives])
-    |> validate_required(:alternatives)
-    |> Validate.starts_with_same_schema_name(:alternatives)
-
-    # |> validate_format()
+    |> cast(attrs, [:schema, :table])
+    |> validate_required([:schema, :table])
+    |> Validate.identifier(:schema)
+    |> Validate.identifier(:table)
   end
 end

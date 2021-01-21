@@ -3,8 +3,7 @@ defmodule IntegrateWeb.SpecificationController do
 
   alias Integrate.Specification
   alias Integrate.Specification.Spec
-
-  alias IntegrateWeb.SpecificationData
+  alias Integrate.SpecificationData
 
   action_fallback IntegrateWeb.FallbackController
 

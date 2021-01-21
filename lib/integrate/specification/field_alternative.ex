@@ -1,4 +1,4 @@
-defmodule Integrate.Specification.Cell do
+defmodule Integrate.Specification.FieldAlternative do
   use Integrate, :schema
 
   @derive {Jason.Encoder, only: [:name, :type, :min_length, :is_nullable]}
@@ -14,7 +14,8 @@ defmodule Integrate.Specification.Cell do
     schema
     |> cast(attrs, [:name, :type, :min_length, :is_nullable])
     |> validate_required(:name)
-
-    # |> validate_format()
+    |> Validate.identifier(:name)
+    # |> ... validate type ...
+    |> validate_number(:min_length, greater_than_or_equal_to: 0)
   end
 end

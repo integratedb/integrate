@@ -3,15 +3,14 @@ defmodule Integrate.Repo.Migrations.CreateClaims do
 
   def change do
     create table(:claims) do
-      add :schema, :string, null: false
-      add :table, :string, null: false
+      add :optional, :boolean, null: false, default: false
 
-      add :spec_id, references(:specs, on_delete: :delete_all)
+      add :spec_id, references(:specs, on_delete: :delete_all), null: false
 
       timestamps()
     end
 
-    create index(:claims, [:schema, :table])
+    create index(:claims, [:optional])
     create index(:claims, [:spec_id])
   end
 end

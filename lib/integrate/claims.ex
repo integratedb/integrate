@@ -39,8 +39,17 @@ defmodule Integrate.Claims do
   def get_claim!(id), do: Repo.get!(Claim, id)
 
   def get_by_spec(%Spec{} = spec) do
-    spec = Repo.preload(spec, claims: [:columns])
+    associations = [
+      claims: [
+        alternatives: [
+          columns: [
+            :alternatives
+          ]
+        ]
+      ]
+    ]
 
+    spec = Repo.preload(spec, associations)
     spec.claims
   end
 
@@ -67,31 +76,19 @@ defmodule Integrate.Claims do
   end
 
   @doc """
-  Initialises a `claim` and its child `columns` at the same time.
+  Initialises a `claim` with its `alternatives`.
 
   Returns a changeset.
 
   ## Examples
 
-      iex> init_claim_with_columns([%Column{}], %{field: value})
-      %Ecto.Changeset{}
-
-      iex> init_claim_with_columns(%Spec{} = spec, [%Column{}], %{field: value})
+      iex> init_claim_with_alternatives([%ClaimAlternative{}])
       %Ecto.Changeset{}
 
   """
-  def init_claim_with_columns(columns, attrs) do
+  def init_claim_with_alternatives(alternatives, attrs \\ %{}) do
     %Claim{}
-    |> Claim.changeset_with_columns(columns, attrs)
-  end
-
-  def init_claim_with_columns(%Spec{id: spec_id}, columns, attrs) do
-    attrs =
-      attrs
-      |> Map.put(:spec_id, spec_id)
-
-    %Claim{}
-    |> Claim.changeset_with_columns(columns, attrs)
+    |> Claim.changeset_with_alternatives(alternatives, attrs)
   end
 
   @doc """
@@ -141,6 +138,134 @@ defmodule Integrate.Claims do
     Claim.changeset(claim, attrs)
   end
 
+  alias Integrate.Claims.ClaimAlternative
+
+  @doc """
+  Returns the list of claim alternatives.
+
+  ## Examples
+
+      iex> list_claim_alternatives()
+      [%ClaimAlternative{}, ...]
+
+  """
+  def list_claim_alternatives do
+    Repo.all(ClaimAlternative)
+  end
+
+  @doc """
+  Gets a single claim alternative.
+
+  Raises `Ecto.NoResultsError` if the ClaimAlternative does not exist.
+
+  ## Examples
+
+      iex> get_claim_alternative!(123)
+      %ClaimAlternative{}
+
+      iex> get_claim_alternative!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_claim_alternative!(id), do: Repo.get!(ClaimAlternative, id)
+
+  @doc """
+  Creates a claim alternative.
+
+  ## Examples
+
+      iex> create_claim_alternative(%Claim{}, %{field: value})
+      {:ok, %ClaimAlternative{}}
+
+      iex> create_claim_alternative(%Claim{}, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_claim_alternative(%Claim{id: claim_id}, attrs \\ %{}) do
+    attrs =
+      attrs
+      |> Map.put(:claim_id, claim_id)
+
+    %ClaimAlternative{}
+    |> ClaimAlternative.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Initialises a `claim_alternative` and its child `columns` at the same time.
+
+  Returns a changeset.
+
+  ## Examples
+
+      iex> init_claim_alternative_with_columns([%Column{}], %{field: value})
+      %Ecto.Changeset{}
+
+      iex> init_claim_alternative_with_columns(%Claim{}, [%Column{}], %{field: value})
+      %Ecto.Changeset{}
+
+  """
+  def init_claim_alternative_with_columns(columns, attrs) do
+    %ClaimAlternative{}
+    |> ClaimAlternative.changeset_with_columns(columns, attrs)
+  end
+
+  def init_claim_alternative_with_columns(%Claim{id: claim_id}, columns, attrs) do
+    attrs =
+      attrs
+      |> Map.put(:claim_id, claim_id)
+
+    %ClaimAlternative{}
+    |> ClaimAlternative.changeset_with_columns(columns, attrs)
+  end
+
+  @doc """
+  Updates a claim alternative.
+
+  ## Examples
+
+      iex> update_claim_alternative(claim, %{field: new_value})
+      {:ok, %ClaimAlternative{}}
+
+      iex> update_claim_alternative(claim, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_claim_alternative(%ClaimAlternative{} = claim_alternative, attrs) do
+    claim_alternative
+    |> ClaimAlternative.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a claim alternative.
+
+  ## Examples
+
+      iex> delete_claim_alternative(claim)
+      {:ok, %ClaimAlternative{}}
+
+      iex> delete_claim_alternative(claim)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_claim_alternative(%ClaimAlternative{} = claim_alternative) do
+    Repo.delete(claim_alternative)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking claim changes.
+
+  ## Examples
+
+      iex> change_claim(claim)
+      %Ecto.Changeset{data: %ClaimAlternative{}}
+
+  """
+  def change_claim_alternative(%ClaimAlternative{} = claim_alternative, attrs \\ %{}) do
+    ClaimAlternative.changeset(claim_alternative, attrs)
+  end
+
   alias Integrate.Claims.Column
 
   @doc """
@@ -184,10 +309,10 @@ defmodule Integrate.Claims do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_column(%Claim{id: claim_id}, attrs \\ %{}) do
+  def create_column(%ClaimAlternative{id: claim_alternative_id}, attrs \\ %{}) do
     attrs =
       attrs
-      |> Map.put(:claim_id, claim_id)
+      |> Map.put(:claim_alternative_id, claim_alternative_id)
 
     %Column{}
     |> Column.changeset(attrs)
@@ -199,13 +324,13 @@ defmodule Integrate.Claims do
 
   ## Examples
 
-      iex> init_column(%{field: value})
+      iex> init_column_with_alternatives([%ColumnAlternative{}])
       %Ecto.Changeset{}
 
   """
-  def init_column(attrs \\ %{}) do
+  def init_column_with_alternatives(alternatives, attrs \\ %{}) do
     %Column{}
-    |> Column.changeset(attrs)
+    |> Column.changeset_with_alternatives(alternatives, attrs)
   end
 
   @doc """
@@ -253,5 +378,119 @@ defmodule Integrate.Claims do
   """
   def change_column(%Column{} = column, attrs \\ %{}) do
     Column.changeset(column, attrs)
+  end
+
+  alias Integrate.Claims.ColumnAlternative
+
+  @doc """
+  Returns the list of column_alternatives.
+
+  ## Examples
+
+      iex> list_column_alternatives()
+      [%ColumnAlternative{}, ...]
+
+  """
+  def list_column_alternatives do
+    Repo.all(ColumnAlternative)
+  end
+
+  @doc """
+  Gets a single column_alternative.
+
+  Raises `Ecto.NoResultsError` if the ColumnAlternative does not exist.
+
+  ## Examples
+
+      iex> get_column_alternative!(123)
+      %ColumnAlternative{}
+
+      iex> get_column_alternative!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_column_alternative!(id), do: Repo.get!(ColumnAlternative, id)
+
+  @doc """
+  Creates a column_alternative.
+
+  ## Examples
+
+      iex> create_column_alternative(%Column{} = column, %{field: value})
+      {:ok, %ColumnAlternative{}}
+
+      iex> create_column_alternative(%Column{} = column, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_column_alternative(%Column{id: column_id}, attrs \\ %{}) do
+    attrs =
+      attrs
+      |> Map.put(:column_id, column_id)
+
+    %ColumnAlternative{}
+    |> ColumnAlternative.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Initialise a column_alternative.
+
+  ## Examples
+
+      iex> init_column_alternative(%{field: value})
+      %Ecto.Changeset{}
+
+  """
+  def init_column_alternative(attrs) do
+    %ColumnAlternative{}
+    |> ColumnAlternative.changeset(attrs)
+  end
+
+  @doc """
+  Updates a column_alternative.
+
+  ## Examples
+
+      iex> update_column_alternative(column_alternative, %{field: new_value})
+      {:ok, %ColumnAlternative{}}
+
+      iex> update_column_alternative(column_alternative, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_column_alternative(%ColumnAlternative{} = column_alternative, attrs) do
+    column_alternative
+    |> ColumnAlternative.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a column_alternative.
+
+  ## Examples
+
+      iex> delete_column_alternative(column_alternative)
+      {:ok, %ColumnAlternative{}}
+
+      iex> delete_column_alternative(column_alternative)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_column_alternative(%ColumnAlternative{} = column_alternative) do
+    Repo.delete(column_alternative)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking column_alternative changes.
+
+  ## Examples
+
+      iex> change_column_alternative(column_alternative)
+      %Ecto.Changeset{data: %ColumnAlternative{}}
+
+  """
+  def change_column_alternative(%ColumnAlternative{} = column_alternative, attrs \\ %{}) do
+    ColumnAlternative.changeset(column_alternative, attrs)
   end
 end

@@ -6,7 +6,7 @@ defmodule Integrate.Repo.Migrations.CreateSpecs do
       add :type, :string, null: false
       add :match, {:array, :map}, default: []
 
-      add :stakeholder_id, references(:stakeholders, on_delete: :delete_all)
+      add :stakeholder_id, references(:stakeholders, on_delete: :delete_all), null: false
 
       timestamps()
     end

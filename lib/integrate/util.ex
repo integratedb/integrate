@@ -19,4 +19,10 @@ defmodule Integrate.Util do
   defp ensure_string_key({key, value}) do
     {to_string(key), to_string_keys(value)}
   end
+
+  def read_priv_file!(parts) do
+    [:code.priv_dir(:integrate) | parts]
+    |> Path.join()
+    |> File.read!()
+  end
 end

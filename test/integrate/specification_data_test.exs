@@ -1,68 +1,6 @@
-defmodule IntegrateWeb.SpecificationDataTest do
+defmodule Integrate.SpecificationDataTest do
   @moduledoc """
-  // Spec
-  data: {
-    // embeds_many :matches, Match
-    match: [
-      {
-        // embeds_one :path, Path
-        path:
-          // - parse these:
-          "public.*", // only valid if fields is also ["*"]
-          "public.orders",
-          ["public.orders", "public.legacy_orders"]
-          // - into this:
-          {
-            // an array of strings
-            alternatives: [
-              "public.orders",
-              "public.legacy_orders"
-            ]
-          }
-
-        // embeds_many :fields, Field
-        fields: [
-          // - parse these:
-          "*",
-          "user_id",
-          {
-            name: "*",
-          },
-          {
-            name: "user_id",
-          },
-          {
-            name: "user_id",
-            optional: true
-          },
-          {
-            alternatives: ["name", "firstname"]
-          },
-          // - into this:
-          {
-            // embeds_many :alternatives, Cell
-            alternatives: [
-              {
-                name: "name",
-                type: null,
-                min_length: null
-              },
-              {
-                name: "firstname",
-                type: "varchar",
-                min_length: 24
-              }
-            ],
-            optional: true || false
-          }
-        ],
-
-        // array of strings
-        events: [],
-
-        // array of strings
-        channels: []
-      }
+  Test validating, expanding and contracting specification data.
   """
   use ExUnit.Case, async: true
 
@@ -70,7 +8,7 @@ defmodule IntegrateWeb.SpecificationDataTest do
 
   alias Integrate.Util
   alias Integrate.Specification.Spec
-  alias IntegrateWeb.SpecificationData, as: SpecData
+  alias Integrate.SpecificationData, as: SpecData
 
   def validate(data) do
     data
@@ -99,17 +37,14 @@ defmodule IntegrateWeb.SpecificationDataTest do
       }
 
       {:error, messages} = validate(data)
-      assert [_, {_, "#/match/0"}] = messages
+      assert [{_, "#/match/0"}] = messages
     end
 
-    test "path can be a string, or an array of strings" do
+    test "path must be a string" do
       valid_data = %{
         match: [
           %{
             path: "foo.bar"
-          },
-          %{
-            path: ["foo.bar", "foo.baz"]
           }
         ]
       }
@@ -122,7 +57,7 @@ defmodule IntegrateWeb.SpecificationDataTest do
             path: %{}
           },
           %{
-            path: 22
+            path: ["array.of", "str.ings"]
           }
         ]
       }
@@ -139,11 +74,7 @@ defmodule IntegrateWeb.SpecificationDataTest do
         "foo.22",
         ".foo",
         "'; drop lil bobby tables;",
-        "foo.bar$",
-        ["foo"],
-        ["foo", "foo.bar"],
-        ["foo.22", "foo.bar"],
-        ["'; drop lil bobby tables;", "foo.bar"]
+        "foo.bar$"
       ]
 
       invalid_paths
@@ -172,18 +103,7 @@ defmodule IntegrateWeb.SpecificationDataTest do
       end)
     end
 
-    test "path table name can be an asterix" do
-      data = %{
-        match: [
-          %{
-            path: "public.*",
-            fields: "*"
-          }
-        ]
-      }
-
-      assert :ok = validate(data)
-
+    test "path table name can be an asterisk iff fields is too" do
       data = %{
         match: [
           %{
@@ -194,38 +114,12 @@ defmodule IntegrateWeb.SpecificationDataTest do
       }
 
       assert :ok = validate(data)
-    end
 
-    test "iff single path given" do
-      data = %{
-        match: [
-          %{
-            path: ["public.*"],
-            fields: ["*"]
-          }
-        ]
-      }
-
-      assert :ok = validate(data)
-
-      data = %{
-        match: [
-          %{
-            path: ["public.*", "foo.bar"],
-            fields: "*"
-          }
-        ]
-      }
-
-      assert {:error, [{_, "#/match/0"}]} = validate(data)
-    end
-
-    test "and iff fields is also an asterix" do
       data = %{
         match: [
           %{
             path: "public.*",
-            fields: ["id", "uuid"]
+            fields: ["id"]
           }
         ]
       }
@@ -246,18 +140,7 @@ defmodule IntegrateWeb.SpecificationDataTest do
       assert :ok = validate(data)
     end
 
-    test "fields can be asterix" do
-      data = %{
-        match: [
-          %{
-            path: "public.foo",
-            fields: "*"
-          }
-        ]
-      }
-
-      assert :ok = validate(data)
-
+    test "fields can be an array containing a single asterisk" do
       data = %{
         match: [
           %{
@@ -268,9 +151,20 @@ defmodule IntegrateWeb.SpecificationDataTest do
       }
 
       assert :ok = validate(data)
+
+      data = %{
+        match: [
+          %{
+            path: "public.foo",
+            fields: "*"
+          }
+        ]
+      }
+
+      assert {:error, [{_, "#/match/0"}]} = validate(data)
     end
 
-    test "asterix must be the only field" do
+    test "asterisk must be the only field" do
       data = %{
         match: [
           %{
@@ -411,6 +305,70 @@ defmodule IntegrateWeb.SpecificationDataTest do
 
       assert :ok = validate(data)
     end
+
+    test "field alternatives can be strings" do
+      data = %{
+        match: [
+          %{
+            path: "public.foo",
+            fields: [
+              %{
+                alternatives: [
+                  "foo",
+                  "bar"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+
+      assert :ok = validate(data)
+    end
+
+    test "match objects can have alternatives" do
+      data = %{
+        match: [
+          %{
+            alternatives: [
+              %{
+                path: "public.foo",
+                fields: ["*"]
+              },
+              %{
+                path: "public.alt_foo",
+                fields: ["*"]
+              }
+            ]
+          }
+        ]
+      }
+
+      assert :ok = validate(data)
+    end
+
+    test "match objects can be optional" do
+      data = %{
+        match: [
+          %{
+            path: "public.foo",
+            fields: ["*"],
+            optional: true
+          },
+          %{
+            alternatives: [
+              %{
+                path: "public.foo",
+                fields: ["*"]
+              }
+            ],
+            optional: true
+          }
+        ]
+      }
+
+      assert :ok = validate(data)
+    end
   end
 
   def expand(data) do
@@ -427,55 +385,20 @@ defmodule IntegrateWeb.SpecificationDataTest do
         ]
       }
 
-      %{"match" => [%{"path" => path}]} = expand(data)
-      assert %{"alternatives" => ["public.foo"]} = path
+      assert %{"match" => [%{"alternatives" => [%{"path" => path}]}]} = expand(data)
+      assert %{"schema" => "public", "table" => "foo"} = path
     end
 
-    test "path array" do
-      data = %{
-        match: [
-          %{path: ["public.foo"]}
-        ]
-      }
-
-      %{"match" => [%{"path" => path}]} = expand(data)
-      assert %{"alternatives" => ["public.foo"]} = path
-
-      data = %{
-        match: [
-          %{path: ["public.foo", "public.bar"]}
-        ]
-      }
-
-      %{"match" => [%{"path" => path}]} = expand(data)
-      assert %{"alternatives" => ["public.foo", "public.bar"]} = path
-    end
-
-    test "path asterix" do
+    test "path asterisk" do
       data = %{
         match: [
           %{path: "public.*"}
         ]
       }
 
-      %{"match" => [%{"path" => path}]} = expand(data)
-      assert %{"alternatives" => ["public.*"]} = path
+      assert %{"match" => [%{"alternatives" => [%{"path" => path}]}]} = expand(data)
+      assert %{"schema" => "public", "table" => "*"} = path
     end
-
-    # fields: "*"
-    # fields: ["*"]
-    # fields: []
-    # fields: ["id"]
-    # fields: ["id", "uuid"]
-    # fields: [%{name: "bar"}]
-    # fields: [
-    #   %{name: "bar", type: "varchar", min_length: 24},
-    #   %{name: "baz", optional: true}
-    # ]
-    # fields: [
-    #   %{alternatives: [%{name: "foo"}, %{name: "bar"}]},
-    #   %{alternatives: [%{name: "baz"}], optional: true}
-    # ]
 
     defp build_data(fields: fields) do
       %{
@@ -491,90 +414,94 @@ defmodule IntegrateWeb.SpecificationDataTest do
     test "fields missing" do
       data = %{match: [%{path: "public.foo"}]}
 
-      assert %{"match" => [%{"fields" => []}]} = expand(data)
+      assert %{"match" => [%{"alternatives" => [match_alt]}]} = expand(data)
+      assert %{"fields" => []} = match_alt
     end
 
     test "fields nil" do
       data = build_data(fields: nil)
 
-      assert %{"match" => [%{"fields" => []}]} = expand(data)
+      assert %{"match" => [%{"alternatives" => [match_alt]}]} = expand(data)
+      assert %{"fields" => []} = match_alt
     end
 
     test "fields empty list" do
       data = build_data(fields: [])
 
-      assert %{"match" => [%{"fields" => []}]} = expand(data)
+      assert %{"match" => [%{"alternatives" => [match_alt]}]} = expand(data)
+      assert %{"fields" => []} = match_alt
     end
 
-    test "fields asterix" do
-      data = build_data(fields: "*")
-
-      %{"match" => [%{"fields" => [field]}]} = expand(data)
-      assert %{"alternatives" => [%{"name" => "*"}], "optional" => false} = field
-    end
-
-    test "fields single asterix in list" do
+    test "fields asterisk" do
       data = build_data(fields: ["*"])
 
-      %{"match" => [%{"fields" => [field]}]} = expand(data)
-      assert %{"alternatives" => [%{"name" => "*"}], "optional" => false} = field
+      assert %{"match" => [%{"alternatives" => [match_alt]}]} = expand(data)
+      assert %{"fields" => [a]} = match_alt
+      assert %{"alternatives" => [%{"name" => "*"}]} = a
     end
 
     test "fields field names list" do
       data = build_data(fields: ["id"])
 
-      %{"match" => [%{"fields" => [field]}]} = expand(data)
-      assert %{"alternatives" => [%{"name" => "id"}], "optional" => false} = field
+      assert %{"match" => [%{"alternatives" => [match_alt]}]} = expand(data)
+      assert %{"fields" => [a]} = match_alt
+      assert %{"alternatives" => [%{"name" => "id"}]} = a
 
       data = build_data(fields: ["id", "uuid"])
 
-      %{"match" => [%{"fields" => [a, b]}]} = expand(data)
-      assert %{"alternatives" => [%{"name" => "id"}], "optional" => false} = a
-      assert %{"alternatives" => [%{"name" => "uuid"}], "optional" => false} = b
+      assert %{"match" => [%{"alternatives" => [match_alt]}]} = expand(data)
+      assert %{"fields" => [a, b]} = match_alt
+      assert %{"alternatives" => [%{"name" => "id"}]} = a
+      assert %{"alternatives" => [%{"name" => "uuid"}]} = b
     end
 
     test "fields field maps list" do
       data = build_data(fields: [%{"name" => "id"}])
 
-      %{"match" => [%{"fields" => [field]}]} = expand(data)
-      assert %{"alternatives" => [%{"name" => "id"}], "optional" => false} = field
+      assert %{"match" => [%{"alternatives" => [match_alt]}]} = expand(data)
+      assert %{"fields" => [field_alt]} = match_alt
+      assert %{"alternatives" => [%{"name" => "id"}]} = field_alt
 
       data = build_data(fields: [%{"name" => "id"}, %{"name" => "uuid"}])
 
-      %{"match" => [%{"fields" => [a, b]}]} = expand(data)
-      assert %{"alternatives" => [%{"name" => "id"}], "optional" => false} = a
-      assert %{"alternatives" => [%{"name" => "uuid"}], "optional" => false} = b
+      assert %{"match" => [%{"alternatives" => [match_alt]}]} = expand(data)
+      assert %{"fields" => [a, b]} = match_alt
+      assert %{"alternatives" => [%{"name" => "id"}]} = a
+      assert %{"alternatives" => [%{"name" => "uuid"}]} = b
     end
 
     test "fields map with type spec" do
       data = build_data(fields: [%{name: "bar", type: "varchar", min_length: 24}])
 
-      %{"match" => [%{"fields" => [field]}]} = expand(data)
-      %{"alternatives" => [cell], "optional" => false} = field
-      assert %{"name" => "bar", "type" => "varchar", "min_length" => 24} = cell
+      assert %{"match" => [%{"alternatives" => [match_alt]}]} = expand(data)
+      assert %{"fields" => [%{"alternatives" => [field_alt]}]} = match_alt
+      assert %{"name" => "bar", "type" => "varchar", "min_length" => 24} = field_alt
     end
 
     test "fields map with optional true" do
       data = build_data(fields: [%{name: "bar", optional: true}])
 
-      %{"match" => [%{"fields" => [field]}]} = expand(data)
-      assert %{"alternatives" => [%{"name" => "bar"}], "optional" => true} = field
+      assert %{"match" => [%{"alternatives" => [match_alt]}]} = expand(data)
+      assert %{"fields" => [%{"alternatives" => [field_alt], "optional" => optional}]} = match_alt
+      assert %{"name" => "bar"} = field_alt
+      assert true = optional
     end
 
     test "fields map with alternatives" do
       data = build_data(fields: [%{alternatives: [%{name: "foo"}, %{name: "bar"}]}])
 
-      %{"match" => [%{"fields" => [field]}]} = expand(data)
-
-      assert %{"alternatives" => [%{"name" => "foo"}, %{"name" => "bar"}], "optional" => false} =
-               field
+      assert %{"match" => [%{"alternatives" => [match_alt]}]} = expand(data)
+      assert %{"fields" => [%{"alternatives" => field_alts}]} = match_alt
+      assert [%{"name" => "foo"}, %{"name" => "bar"}] = field_alts
     end
 
     test "fields map with optional alternatives" do
       data = build_data(fields: [%{alternatives: [%{name: "foo"}], optional: true}])
 
-      %{"match" => [%{"fields" => [field]}]} = expand(data)
-      assert %{"alternatives" => [%{"name" => "foo"}], "optional" => true} = field
+      assert %{"match" => [%{"alternatives" => [match_alt]}]} = expand(data)
+      assert %{"fields" => [%{"alternatives" => [field_alt], "optional" => optional}]} = match_alt
+      assert %{"name" => "foo"} = field_alt
+      assert true = optional
     end
   end
 
@@ -598,31 +525,39 @@ defmodule IntegrateWeb.SpecificationDataTest do
       data = %{
         match: [
           %{
-            path: %{
-              alternatives: ["public.foo"]
-            },
-            fields: []
+            alternatives: [
+              %{
+                path: %{
+                  schema: "public",
+                  table: "foo"
+                }
+              }
+            ]
           }
         ]
       }
 
-      %{match: [%{path: path}]} = contract(data)
+      assert %{match: [%{path: path}]} = contract(data)
       assert "public.foo" = path
     end
 
-    test "path asterix" do
+    test "path asterisk" do
       data = %{
         match: [
           %{
-            path: %{
-              alternatives: ["public.*"]
-            },
-            fields: []
+            alternatives: [
+              %{
+                path: %{
+                  schema: "public",
+                  table: "*"
+                }
+              }
+            ]
           }
         ]
       }
 
-      %{match: [%{path: path}]} = contract(data)
+      assert %{match: [%{path: path}]} = contract(data)
       assert "public.*" = path
     end
 
@@ -630,16 +565,26 @@ defmodule IntegrateWeb.SpecificationDataTest do
       data = %{
         match: [
           %{
-            path: %{
-              alternatives: ["public.foo", "public.bar"]
-            },
-            fields: []
+            alternatives: [
+              %{
+                path: %{
+                  schema: "public",
+                  table: "foo"
+                }
+              },
+              %{
+                path: %{
+                  schema: "public",
+                  table: "bar"
+                }
+              }
+            ]
           }
         ]
       }
 
-      %{match: [%{path: path}]} = contract(data)
-      assert ["public.foo", "public.bar"] = path
+      %{match: [%{alternatives: [%{path: a}, %{path: b}]}]} = contract(data)
+      assert ["public.foo", "public.bar"] = [a, b]
     end
 
     # fields: "*"
@@ -661,10 +606,15 @@ defmodule IntegrateWeb.SpecificationDataTest do
       %{
         match: [
           %{
-            path: %{
-              alternatives: ["public.foo"]
-            },
-            fields: fields
+            alternatives: [
+              %{
+                path: %{
+                  schema: "public",
+                  table: "foo"
+                },
+                fields: fields
+              }
+            ]
           }
         ]
       }
@@ -676,7 +626,7 @@ defmodule IntegrateWeb.SpecificationDataTest do
       assert %{match: [%{fields: []}]} = contract(data)
     end
 
-    test "fields asterix" do
+    test "fields asterisk" do
       expanded_field = %{alternatives: [%{name: "*"}], optional: false}
       data = build_expanded_data(fields: [expanded_field])
 
