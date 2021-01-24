@@ -176,5 +176,110 @@ defmodule IntegrateWeb.SpecificationControllerTest do
       assert %{"name" => ["path: `integratedb.foos`, field: `insortulated_at`: " <> mb]} = b
       assert "specified field `insortulated_at` does not exist in the database." = mb
     end
+
+    test "valid claims grant select access to db user", %{
+      conn: conn,
+      stakeholder: stakeholder,
+      stakeholder_db_user: {db_user, _pwd}
+    } do
+      path = Routes.specification_path(conn, :update, stakeholder, :claims)
+
+      grants_map =
+        db_user
+        |> Claims.column_grants_for()
+        |> Claims.to_grants_map()
+
+      assert nil == Map.get(grants_map, {"integratedb", "foos"})
+
+      payload = %{
+        data: %{
+          match: [
+            %{
+              path: "integratedb.foos",
+              fields: ["name", "inserted_at"]
+            }
+          ]
+        }
+      }
+
+      _resp =
+        conn
+        |> put(path, payload)
+        |> json_response(200)
+
+      grants_map =
+        db_user
+        |> Claims.column_grants_for()
+        |> Claims.to_grants_map()
+
+      assert %{"name" => true, "inserted_at" => true} =
+               Map.get(grants_map, {"integratedb", "foos"})
+    end
+
+    test "changing claims revokes select access", %{
+      conn: conn,
+      stakeholder: stakeholder,
+      stakeholder_db_user: {db_user, _pwd}
+    } do
+      path = Routes.specification_path(conn, :update, stakeholder, :claims)
+
+      payload = %{
+        data: %{
+          match: [
+            %{
+              path: "integratedb.foos",
+              fields: ["name", "inserted_at"]
+            }
+          ]
+        }
+      }
+
+      _resp =
+        conn
+        |> put(path, payload)
+        |> json_response(200)
+
+      columns_map =
+        db_user
+        |> Claims.column_grants_for()
+        |> Claims.to_grants_map()
+        |> Map.get({"integratedb", "foos"})
+
+      keys =
+        columns_map
+        |> Map.keys()
+        |> Enum.sort()
+
+      assert keys == ["inserted_at", "name"]
+
+      payload = %{
+        data: %{
+          match: [
+            %{
+              path: "integratedb.foos",
+              fields: ["name"]
+            }
+          ]
+        }
+      }
+
+      _resp =
+        conn
+        |> put(path, payload)
+        |> json_response(200)
+
+      columns_map =
+        db_user
+        |> Claims.column_grants_for()
+        |> Claims.to_grants_map()
+        |> Map.get({"integratedb", "foos"})
+
+      keys =
+        columns_map
+        |> Map.keys()
+        |> Enum.sort()
+
+      assert keys == ["name"]
+    end
   end
 end

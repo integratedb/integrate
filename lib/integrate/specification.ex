@@ -77,15 +77,16 @@ defmodule Integrate.Specification do
       iex> set_spec(%Stakeholder{}, :claims, attrs)
       {:ok, %{spec: %Spec{} = spec}}
 
-      iex> update_spec(%Stakeholder{}, %{field: bad_value})
+      iex> set_spec(%Stakeholder{}, :claims, %{field: bad_value})
       {:error, :spec, %Ecto.Changeset{}}
 
   """
-  def set_spec(%Stakeholder{id: stakeholder_id, name: name}, type, %{"match" => _} = attrs) do
+  def set_spec(
+        %Stakeholder{id: stakeholder_id, name: name} = stakeholder,
+        type,
+        %{"match" => _} = attrs
+      ) do
     type_value = Spec.types(type)
-
-    previous_query =
-      from(s in Spec, where: s.stakeholder_id == ^stakeholder_id and s.type == ^type_value)
 
     changeset =
       attrs
@@ -96,14 +97,37 @@ defmodule Integrate.Specification do
     case changeset.valid? do
       true ->
         Multi.new()
-        |> Multi.delete_all(:previous, previous_query)
+        |> Multi.run(:previous_spec, &previous_spec(&1, &2, stakeholder, type))
+        |> Multi.run(:previous_claims, &previous_claims/2)
+        |> Multi.run(:delete_previous_spec, &delete_previous_spec/2)
         |> Multi.run(:claims, &prepare_claims(&1, &2, changeset))
         |> Multi.insert(:spec, &prepare_spec(&1, changeset))
+        |> Multi.run(:permissions, &sync_permissions(&1, &2, name))
         |> Repo.transaction()
 
       false ->
         {:error, :spec, changeset, %{}}
     end
+  end
+
+  defp previous_spec(_repo, _context, %Stakeholder{} = stakeholder, type) do
+    {:ok, get_spec(stakeholder, type)}
+  end
+
+  defp previous_claims(_repo, %{previous_spec: nil}) do
+    {:ok, []}
+  end
+
+  defp previous_claims(_repo, %{previous_spec: %Spec{} = spec}) do
+    {:ok, Claims.get_by_spec(spec)}
+  end
+
+  defp delete_previous_spec(_repo, %{previous_spec: nil}) do
+    {:ok, nil}
+  end
+
+  defp delete_previous_spec(_repo, %{previous_spec: %Spec{} = spec}) do
+    Repo.delete(spec)
   end
 
   defp prepare_claims(_repo, _context, changeset) do
@@ -257,7 +281,12 @@ defmodule Integrate.Specification do
     end)
   end
 
-  defp accumulate_columns(%Field{alternatives: alternatives, optional: optional}, column_map, %Path{} = path, acc) do
+  defp accumulate_columns(
+         %Field{alternatives: alternatives, optional: optional},
+         column_map,
+         %Path{} = path,
+         acc
+       ) do
     attrs = %{
       optional: optional
     }
@@ -382,6 +411,95 @@ defmodule Integrate.Specification do
   # spec says "must be at least this max length".
   defp field_alt_min_length_matches(field_alt_min_length, db_max_length) do
     field_alt_min_length <= db_max_length
+  end
+
+  defp sync_permissions(_repo, %{claims: claims, previous_claims: previous_claims}, name) do
+    previously_claimed_map =
+      previous_claims
+      |> Claims.to_columns_map()
+
+    existing_grant_map =
+      name
+      |> Claims.column_grants_for()
+      |> Claims.to_grants_map()
+
+    newly_claimed_map =
+      claims
+      |> Enum.map(&Changeset.apply_changes/1)
+      |> Claims.to_columns_map()
+
+    # Find all the columns no longer claimed and revoke permission on them.
+    should_revoke =
+      previously_claimed_map
+      |> Util.drop_matching(newly_claimed_map)
+      |> Util.take_matching(existing_grant_map)
+
+    # Find all the columns now newly claimed and grant permission on them.
+    should_grant =
+      newly_claimed_map
+      |> Util.drop_matching(previously_claimed_map)
+      |> Util.drop_matching(existing_grant_map)
+
+    with {:ok, num_revoked} <- apply_claim_permissions(should_revoke, :revoke, name),
+         {:ok, num_granted} <- apply_claim_permissions(should_grant, :grant, name) do
+      {:ok, {num_revoked, num_granted}}
+    else
+      err ->
+        err
+    end
+  end
+
+  defp apply_claim_permissions(items, action, name) when action in [:grant, :revoke] do
+    state = %{
+      counter: 0,
+      error: nil
+    }
+
+    result =
+      items
+      |> Enum.reduce(state, &apply_claim_permission(action, &1, name, &2))
+
+    case result do
+      %{counter: counter, error: nil} ->
+        {:ok, counter}
+
+      %{error: error} ->
+        {:error, error}
+    end
+  end
+
+  defp apply_claim_permission(_, _, _, %{error: error} = state) when not is_nil(error), do: state
+  defp apply_claim_permission(_, {_, columns}, _, state) when columns == %{}, do: state
+
+  defp apply_claim_permission(
+         action,
+         {{schema, table}, columns},
+         grantee,
+         %{error: nil, counter: counter} = state
+       ) do
+    apply = String.upcase("#{action}")
+
+    preposition =
+      case action do
+        :grant -> "TO"
+        :revoke -> "FROM"
+      end
+
+    column_list =
+      columns
+      |> Map.keys()
+      |> Enum.join(", ")
+
+    command =
+      "#{apply} SELECT (#{column_list}) ON TABLE #{schema}.#{table} #{preposition} #{grantee}"
+
+    case Repo.query(command) do
+      {:ok, %Postgrex.Result{columns: nil, command: ^action}} ->
+        %{state | counter: counter + Enum.count(columns)}
+
+      {:error, error} ->
+        %{state | error: error}
+    end
   end
 
   @doc """

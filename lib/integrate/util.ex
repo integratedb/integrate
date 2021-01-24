@@ -25,4 +25,30 @@ defmodule Integrate.Util do
     |> Path.join()
     |> File.read!()
   end
+
+  def drop_matching(%{} = a, %{} = b) do
+    a
+    |> Enum.map(fn {k, v} ->
+      keys =
+        b
+        |> Map.get(k, %{})
+        |> Map.keys()
+
+      {k, Map.drop(v, keys)}
+    end)
+    |> Enum.into(%{})
+  end
+
+  def take_matching(%{} = a, %{} = b) do
+    a
+    |> Enum.map(fn {k, v} ->
+      keys =
+        b
+        |> Map.get(k, %{})
+        |> Map.keys()
+
+      {k, Map.take(v, keys)}
+    end)
+    |> Enum.into(%{})
+  end
 end

@@ -38,6 +38,16 @@ defmodule Integrate.Claims do
   """
   def get_claim!(id), do: Repo.get!(Claim, id)
 
+  @doc """
+  Gets the associated claims for a spec, preloaded with their
+  child associations.
+
+  ## Examples
+
+      iex> get_by_spec(%Spec{})
+      [%Claim{}, ...]
+
+  """
   def get_by_spec(%Spec{} = spec) do
     associations = [
       claims: [
@@ -492,5 +502,68 @@ defmodule Integrate.Claims do
   """
   def change_column_alternative(%ColumnAlternative{} = column_alternative, attrs \\ %{}) do
     ColumnAlternative.changeset(column_alternative, attrs)
+  end
+
+  @doc """
+  Coerce a list of claims to a `{schema, table}: column_names` map.
+
+  ## Examples
+
+      iex> to_columns_map([%Claim{}])
+      %{{schema, table}: [column_name, ...], ...}
+
+  """
+  def to_columns_map(claims) do
+    claims
+    |> Enum.reduce(%{}, fn %Claim{} = claim, acc ->
+      claim.alternatives
+      |> Enum.reduce(acc, fn %ClaimAlternative{} = claim_alt, acc ->
+        key = {claim_alt.schema, claim_alt.table}
+        val = Map.get(acc, key, %{})
+
+        val =
+          claim_alt.columns
+          |> Enum.reduce(val, fn %Column{} = col, acc ->
+            col.alternatives
+            |> Enum.reduce(acc, fn %ColumnAlternative{} = col_alt, acc ->
+              Map.put(acc, col_alt.name, true)
+            end)
+          end)
+
+        Map.put(acc, key, val)
+      end)
+    end)
+  end
+
+  def column_grants_for(name, privilege \\ "SELECT") do
+    query =
+      from g in "role_column_grants",
+        prefix: "information_schema",
+        select: {
+          g.table_schema,
+          g.table_name,
+          g.column_name
+        },
+        where:
+          g.grantee == ^name and
+            g.privilege_type == ^privilege
+
+    query
+    |> Repo.all()
+  end
+
+  def to_grants_map(results) do
+    results
+    |> Enum.reduce(%{}, fn {schema_name, table_name, column_name}, acc ->
+      key = {schema_name, table_name}
+
+      val =
+        acc
+        |> Map.get(key, %{})
+        |> Map.put(column_name, true)
+
+      acc
+      |> Map.put(key, val)
+    end)
   end
 end

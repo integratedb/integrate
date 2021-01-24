@@ -37,8 +37,8 @@ defmodule IntegrateWeb.SpecificationController do
     context = {:stakeholder, Stakeholders.get_stakeholder!(stakeholder_id)}
 
     with {:stakeholder, %Stakeholder{} = stakeholder} <- context,
-        {:ok, attrs} <- SpecificationData.validate_and_expand(data),
-        {:ok, %{spec: %Spec{} = spec}} <- Specification.set_spec(stakeholder, type, attrs) do
+         {:ok, attrs} <- SpecificationData.validate_and_expand(data),
+         {:ok, %{spec: %Spec{} = spec}} <- Specification.set_spec(stakeholder, type, attrs) do
       render(conn, "show.json", spec: spec)
     else
       {:stakeholder, nil} ->
