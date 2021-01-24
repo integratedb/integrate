@@ -57,14 +57,14 @@ defmodule Integrate.Specification do
 
   ## Examples
 
-      iex> get_spec(123, :claims)
+      iex> get_spec(%Stakeholder{}, :claims)
       %Spec{type: "CLAIMS"}
 
-      iex> get_spec(456, :notifications)
+      iex> get_spec(%Stakeholder{}, :notifications)
       nil
 
   """
-  def get_spec(stakeholder_id, type) do
+  def get_spec(%Stakeholder{id: stakeholder_id}, type) do
     Spec
     |> Repo.get_by(stakeholder_id: stakeholder_id, type: Spec.types(type))
   end
@@ -74,14 +74,14 @@ defmodule Integrate.Specification do
 
   ## Examples
 
-      iex> set_spec(stakeholder_id, :claims, attrs)
+      iex> set_spec(%Stakeholder{}, :claims, attrs)
       {:ok, %{spec: %Spec{} = spec}}
 
-      iex> update_spec(spec, %{field: bad_value})
+      iex> update_spec(%Stakeholder{}, %{field: bad_value})
       {:error, :spec, %Ecto.Changeset{}}
 
   """
-  def set_spec(stakeholder_id, type, %{"match" => _} = attrs) do
+  def set_spec(%Stakeholder{id: stakeholder_id, name: name}, type, %{"match" => _} = attrs) do
     type_value = Spec.types(type)
 
     previous_query =
@@ -97,23 +97,27 @@ defmodule Integrate.Specification do
       true ->
         Multi.new()
         |> Multi.delete_all(:previous, previous_query)
-        |> Multi.run(:claims, fn _, _ ->
-          claims =
-            changeset
-            |> Changeset.apply_changes()
-            |> generate_claims()
-
-          {:ok, claims}
-        end)
-        |> Multi.insert(:spec, fn %{claims: claims} ->
-          changeset
-          |> Changeset.put_assoc(:claims, claims)
-        end)
+        |> Multi.run(:claims, &prepare_claims(&1, &2, changeset))
+        |> Multi.insert(:spec, &prepare_spec(&1, changeset))
         |> Repo.transaction()
 
       false ->
         {:error, :spec, changeset, %{}}
     end
+  end
+
+  defp prepare_claims(_repo, _context, changeset) do
+    claims =
+      changeset
+      |> Changeset.apply_changes()
+      |> generate_claims()
+
+    {:ok, claims}
+  end
+
+  defp prepare_spec(%{claims: claims}, changeset) do
+    changeset
+    |> Changeset.put_assoc(:claims, claims)
   end
 
   defp generate_claims(%Spec{match: matches}) do

@@ -6,13 +6,13 @@ defmodule Integrate.ValidateMigrationTest do
   alias Integrate.SpecificationData
   alias Integrate.Util
 
-  defp set_spec(stakeholder_id, data) do
+  defp set_spec(stakeholder, data) do
     {:ok, attrs} =
       data
       |> Util.to_string_keys()
       |> SpecificationData.validate_and_expand()
 
-    Specification.set_spec(stakeholder_id, :claims, attrs)
+    Specification.set_spec(stakeholder, :claims, attrs)
   end
 
   describe "integratedb_unmet_claims()" do
@@ -28,7 +28,7 @@ defmodule Integrate.ValidateMigrationTest do
         ]
       }
 
-      {:ok, _} = set_spec(stakeholder.id, data)
+      {:ok, _} = set_spec(stakeholder, data)
 
       assert {:ok, %{rows: [], num_rows: 0}} =
                Repo.query("SELECT * from integratedb_unmet_claims()")
@@ -44,7 +44,7 @@ defmodule Integrate.ValidateMigrationTest do
         ]
       }
 
-      {:ok, _} = set_spec(stakeholder.id, data)
+      {:ok, _} = set_spec(stakeholder, data)
 
       {:ok, _} = Repo.query("ALTER TABLE integratedb.foos DROP COLUMN name")
 
@@ -68,7 +68,7 @@ defmodule Integrate.ValidateMigrationTest do
         ]
       }
 
-      {:ok, _} = set_spec(stakeholder.id, data)
+      {:ok, _} = set_spec(stakeholder, data)
 
       assert {:ok, %{rows: [[0]], num_rows: 1}} =
                Repo.query("SELECT integratedb_validate_migration()")
@@ -84,7 +84,7 @@ defmodule Integrate.ValidateMigrationTest do
         ]
       }
 
-      {:ok, _} = set_spec(stakeholder.id, data)
+      {:ok, _} = set_spec(stakeholder, data)
 
       {:ok, _} = Repo.query("ALTER TABLE integratedb.foos DROP COLUMN name")
 
@@ -118,7 +118,7 @@ defmodule Integrate.ValidateMigrationTest do
         ]
       }
 
-      {:ok, _} = set_spec(stakeholder.id, data)
+      {:ok, _} = set_spec(stakeholder, data)
 
       {:ok, _} = Repo.query("DROP TABLE integratedb.foos")
 
@@ -145,7 +145,7 @@ defmodule Integrate.ValidateMigrationTest do
         ]
       }
 
-      {:ok, _} = set_spec(stakeholder.id, data)
+      {:ok, _} = set_spec(stakeholder, data)
 
       {:ok, _} = Repo.query("ALTER TABLE integratedb.bars DROP COLUMN name")
 
@@ -172,7 +172,7 @@ defmodule Integrate.ValidateMigrationTest do
         ]
       }
 
-      {:ok, _} = set_spec(stakeholder.id, data)
+      {:ok, _} = set_spec(stakeholder, data)
 
       {:ok, _} = Repo.query("DROP TABLE integratedb.foos")
       {:ok, _} = Repo.query("DROP TABLE integratedb.bars")
@@ -200,7 +200,7 @@ defmodule Integrate.ValidateMigrationTest do
         ]
       }
 
-      {:ok, _} = set_spec(stakeholder.id, data)
+      {:ok, _} = set_spec(stakeholder, data)
 
       {:ok, _} = Repo.query("ALTER TABLE integratedb.foos DROP COLUMN name")
       {:ok, _} = Repo.query("ALTER TABLE integratedb.bars DROP COLUMN name")
@@ -221,7 +221,7 @@ defmodule Integrate.ValidateMigrationTest do
         ]
       }
 
-      {:ok, _} = set_spec(stakeholder.id, data)
+      {:ok, _} = set_spec(stakeholder, data)
 
       {:ok, _} = Repo.query("DROP TABLE integratedb.foos")
 
@@ -242,7 +242,7 @@ defmodule Integrate.ValidateMigrationTest do
         ]
       }
 
-      {:ok, _} = set_spec(stakeholder.id, data)
+      {:ok, _} = set_spec(stakeholder, data)
 
       assert {:ok, %{num_rows: 0}} = Repo.query("SELECT integratedb_unmet_claims()")
     end
@@ -257,7 +257,7 @@ defmodule Integrate.ValidateMigrationTest do
         ]
       }
 
-      {:ok, _} = set_spec(stakeholder.id, data)
+      {:ok, _} = set_spec(stakeholder, data)
 
       {:ok, _} = Repo.query("DROP TABLE integratedb.foos")
 
@@ -281,7 +281,7 @@ defmodule Integrate.ValidateMigrationTest do
         ]
       }
 
-      {:ok, _} = set_spec(stakeholder.id, data)
+      {:ok, _} = set_spec(stakeholder, data)
 
       {:ok, _} = Repo.query("ALTER TABLE integratedb.foos DROP COLUMN name")
 
@@ -305,7 +305,7 @@ defmodule Integrate.ValidateMigrationTest do
         ]
       }
 
-      {:ok, _} = set_spec(stakeholder.id, data)
+      {:ok, _} = set_spec(stakeholder, data)
 
       {:ok, _} = Repo.query("ALTER TABLE integratedb.foos DROP COLUMN name")
       {:ok, _} = Repo.query("ALTER TABLE integratedb.foos DROP COLUMN inserted_at")
@@ -328,7 +328,7 @@ defmodule Integrate.ValidateMigrationTest do
         ]
       }
 
-      {:ok, _} = set_spec(stakeholder.id, data)
+      {:ok, _} = set_spec(stakeholder, data)
 
       {:ok, _} = Repo.query("ALTER TABLE integratedb.foos DROP COLUMN name")
 

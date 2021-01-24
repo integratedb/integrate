@@ -75,7 +75,7 @@ defmodule IntegrateWeb.SpecificationControllerTest do
         |> Map.get("data")
 
       assert %{"type" => "CLAIMS", "match" => []} = data
-      assert %Spec{match: []} = Specification.get_spec(stakeholder.id, :claims)
+      assert %Spec{match: []} = Specification.get_spec(stakeholder, :claims)
     end
 
     test "valid claims sets the spec", %{conn: conn, stakeholder: stakeholder} do
@@ -103,7 +103,7 @@ defmodule IntegrateWeb.SpecificationControllerTest do
       assert %{"fields" => ["name", "inserted_at"], "path" => "integratedb.foos"} = match
 
       # This is the expanded spec data we saved.
-      assert %Spec{match: [match]} = Specification.get_spec(stakeholder.id, :claims)
+      assert %Spec{match: [match]} = Specification.get_spec(stakeholder, :claims)
       assert %Match{alternatives: [%MatchAlternative{fields: [a, b]}]} = match
       assert %Field{alternatives: [%FieldAlternative{name: "name"}]} = a
       assert %Field{alternatives: [%FieldAlternative{name: "inserted_at"}]} = b
@@ -129,7 +129,7 @@ defmodule IntegrateWeb.SpecificationControllerTest do
         |> json_response(200)
 
       claims =
-        stakeholder.id
+        stakeholder
         |> Specification.get_spec(:claims)
         |> Claims.get_by_spec()
 
