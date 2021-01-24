@@ -95,18 +95,20 @@ defmodule Integrate.Specification do
 
     case changeset.valid? do
       true ->
-        claims =
-          changeset
-          |> Changeset.apply_changes()
-          |> generate_claims()
-
-        changeset =
-          changeset
-          |> Changeset.put_assoc(:claims, claims)
-
         Multi.new()
         |> Multi.delete_all(:previous, previous_query)
-        |> Multi.insert(:spec, changeset)
+        |> Multi.run(:claims, fn _, _ ->
+          claims =
+            changeset
+            |> Changeset.apply_changes()
+            |> generate_claims()
+
+          {:ok, claims}
+        end)
+        |> Multi.insert(:spec, fn %{claims: claims} ->
+          changeset
+          |> Changeset.put_assoc(:claims, claims)
+        end)
         |> Repo.transaction()
 
       false ->
