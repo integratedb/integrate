@@ -63,13 +63,16 @@ defmodule Integrate.MixProject do
       homepage_url: "https://integratedb.org",
       docs: [
         api_reference: false,
-        passets: "docs/assets",
+        assets: "docs/assets",
         extras: [
-          "README.md": [filename: "introduction", title: "Introduction"]
+          "docs/intro.md": [filename: "intro", title: "Introduction"],
+          "docs/install.md": [filename: "install", title: "Installation"],
+          "docs/usage.md": [filename: "usage", title: "User Guide"],
+          "docs/support.md": [filename: "support", title: "Support"]
         ],
         formatters: ["html"],
         logo: "docs/assets/square-logo.jpg",
-        main: "introduction",
+        main: "intro",
         output: "_build_docs"
       ]
     ]
