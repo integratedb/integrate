@@ -1,6 +1,5 @@
 defmodule Integrate.Foo do
-  use Ecto.Schema
-  import Ecto.Changeset
+  use Integrate, :schema
 
   schema "foos" do
     field :name, :string
