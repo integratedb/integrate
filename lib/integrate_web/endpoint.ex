@@ -1,5 +1,5 @@
 defmodule IntegrateWeb.Endpoint do
-  use Phoenix.Endpoint, otp_app: :integrate
+  use Phoenix.Endpoint, otp_app: :integratedb
 
   # The session will be stored in the cookie and signed,
   # this means its contents can be read but not tampered with.
@@ -22,7 +22,7 @@ defmodule IntegrateWeb.Endpoint do
   # when deploying your static files in production.
   plug Plug.Static,
     at: "/",
-    from: :integrate,
+    from: :integratedb,
     gzip: false,
     only: ~w(css fonts images js favicon.ico robots.txt)
 
@@ -30,7 +30,7 @@ defmodule IntegrateWeb.Endpoint do
   # :code_reloader configuration of your endpoint.
   if code_reloading? do
     plug Phoenix.CodeReloader
-    plug Phoenix.Ecto.CheckRepoStatus, otp_app: :integrate
+    plug Phoenix.Ecto.CheckRepoStatus, otp_app: :integratedb
   end
 
   plug Phoenix.LiveDashboard.RequestLogger,

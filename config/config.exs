@@ -18,19 +18,19 @@ true =
   safe_namespace
   |> String.match?(~r/^\w{1,32}$/)
 
-config :integrate,
+config :integratedb,
   ecto_repos: [Integrate.Repo],
   db_namespace: safe_namespace
 
-config :integrate, Integrate.Repo,
+config :integratedb, Integrate.Repo,
   migration_default_prefix: safe_namespace,
   migration_source: "#{safe_namespace}_schema_migrations",
   migration_timestamps: [type: :utc_datetime_usec]
 
-config :integrate, Integrate.Replication, []
+config :integratedb, Integrate.Replication, []
 
 # Configures the endpoint
-config :integrate, IntegrateWeb.Endpoint,
+config :integratedb, IntegrateWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "nA/h/J9mkINqqVSMc5E33eWFaKSHnprDsu1AOFsoXPkwelASBugWah7/Jlzvsre6",
   render_errors: [view: IntegrateWeb.ErrorView, accepts: ~w(json), layout: false],

@@ -6,7 +6,7 @@ defmodule Integrate.Config do
   alias Integrate.Validate
 
   def namespace do
-    :integrate
+    :integratedb
     |> Application.fetch_env!(:db_namespace)
     |> Validate.validate_and_downcase_namespace()
   end

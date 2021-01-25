@@ -21,7 +21,7 @@ defmodule Integrate.Util do
   end
 
   def read_priv_file!(parts) do
-    [:code.priv_dir(:integrate) | parts]
+    [:code.priv_dir(:integratedb) | parts]
     |> Path.join()
     |> File.read!()
   end

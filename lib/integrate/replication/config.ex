@@ -26,7 +26,7 @@ defmodule Integrate.Replication.Config do
   """
   def parse_repo_config_into_epgsql_config do
     {url, config} =
-      :integrate
+      :integratedb
       |> Application.fetch_env!(Integrate.Repo)
       |> Keyword.take(@connection_keys)
       |> Keyword.pop(:url)
@@ -114,7 +114,7 @@ defmodule Integrate.Replication.Config do
   end
 
   def config do
-    :integrate
+    :integratedb
     |> Application.get_env(Replication)
   end
 

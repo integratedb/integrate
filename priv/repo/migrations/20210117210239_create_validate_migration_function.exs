@@ -11,7 +11,7 @@ defmodule Integrate.Repo.Migrations.CreateValidateMigrationFunction do
 
   defp sql_file(name) do
     parts = [
-      :code.priv_dir(:integrate),
+      :code.priv_dir(:integratedb),
       "sql",
       name
     ]

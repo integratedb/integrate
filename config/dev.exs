@@ -1,7 +1,7 @@
 use Mix.Config
 
 # Configure your database
-config :integrate, Integrate.Repo,
+config :integratedb, Integrate.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
@@ -15,7 +15,7 @@ config :integrate, Integrate.Repo,
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we use it
 # with webpack to recompile .js and .css sources.
-config :integrate, IntegrateWeb.Endpoint,
+config :integratedb, IntegrateWeb.Endpoint,
   http: [port: 4000],
   debug_errors: true,
   code_reloader: true,
