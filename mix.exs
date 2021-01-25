@@ -65,9 +65,9 @@ defmodule Integrate.MixProject do
         api_reference: false,
         assets: "docs/assets",
         extras: [
-          "docs/intro.md": [filename: "intro", title: "Introduction"],
-          "docs/install.md": [filename: "install", title: "Installation"],
-          "docs/usage.md": [filename: "usage", title: "User Guide"],
+          "docs/intro.md": [filename: "intro", title: "Intro"],
+          "docs/installation.md": [filename: "installation", title: "Installation"],
+          "docs/usage.md": [filename: "usage", title: "Usage"],
           "docs/support.md": [filename: "support", title: "Support"]
         ],
         formatters: ["html"],

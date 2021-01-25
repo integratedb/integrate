@@ -10,8 +10,8 @@
 
 IntegrateDB is a database sharing system. It provides integration primitives and data ownership and migration controls. Use it to integrate services directly through a Postgres database.
 
-- [User Guide](https://hexdocs.pm/integratedb/usage.html)
-- [Installation](https://hexdocs.pm/integratedb/install.html)
+- [Usage](https://hexdocs.pm/integratedb/usage.html)
+- [Installation](https://hexdocs.pm/integratedb/installation.html)
 - [Support](https://hexdocs.pm/integratedb/support.html)
 
 ## Why would I want to do that?
@@ -230,8 +230,8 @@ Alternatives and optionals are designed as tools to help navigate a migration wh
 
 See the documentation for more information:
 
-- [User Guide](https://hexdocs.pm/integratedb/usage.html)
-- [Installation](https://hexdocs.pm/integratedb/install.html)
+- [Usage](https://hexdocs.pm/integratedb/usage.html)
+- [Installation](https://hexdocs.pm/integratedb/installation.html)
 - [Support](https://hexdocs.pm/integratedb/support.html)
 
 ## License

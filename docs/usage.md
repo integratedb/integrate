@@ -1,5 +1,5 @@
 
-# User Guide
+# Usage
 
 ... functional usage guide here ...
 
