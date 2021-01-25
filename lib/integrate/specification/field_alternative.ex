@@ -14,7 +14,7 @@ defmodule Integrate.Specification.FieldAlternative do
     schema
     |> cast(attrs, [:name, :type, :min_length, :is_nullable])
     |> validate_required(:name)
-    |> Validate.identifier(:name)
+    |> Validate.identifier_or_asterisk(:name)
     # |> ... validate type ...
     |> validate_number(:min_length, greater_than_or_equal_to: 0)
   end

@@ -13,6 +13,6 @@ defmodule Integrate.Specification.Path do
     |> cast(attrs, [:schema, :table])
     |> validate_required([:schema, :table])
     |> Validate.identifier(:schema)
-    |> Validate.identifier(:table)
+    |> Validate.identifier_or_asterisk(:table)
   end
 end
