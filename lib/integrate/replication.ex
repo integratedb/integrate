@@ -4,6 +4,13 @@ defmodule Integrate.Replication do
   alias Broadway.Message
   alias __MODULE__
 
+  alias Integrate.Replication.Changes.{
+    NewRecord,
+    Transaction,
+  }
+
+  @namespace Integrate.Config.namespace()
+
   def start_link(_opts) do
     Broadway.start_link(
       Replication,
@@ -27,11 +34,36 @@ defmodule Integrate.Replication do
   end
 
   @impl true
-  def handle_message(_, %Message{data: _txn} = message, _) do
+  def handle_message(_, %Message{data: %Transaction{changes: changes}} = message, _) do
     IO.inspect({:message, message})
+
+    errors =
+      changes
+      |> Enum.reduce([], &handle_change/2)
+
+    message =
+      case errors do
+        [] ->
+          message
+
+        reason ->
+          Message.failed(message, reason)
+      end
 
     message
   end
+
+  def handle_change(%NewRecord{relation: {schema, "sync"}}, acc) when schema == @namespace do
+    case Integrate.Specification.sync_specs() do
+      {:ok, _} ->
+        acc
+
+      err ->
+        [err | acc]
+    end
+  end
+
+  def handle_change(_, acc), do: acc
 
   def ack(:ack_id, [], []), do: nil
   def ack(:ack_id, _, [_head | _tail]), do: throw("XXX ack failure handling not yet implemented")

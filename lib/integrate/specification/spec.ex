@@ -22,7 +22,7 @@ defmodule Integrate.Specification.Spec do
     field :type, :string
 
     embeds_many :match, Specification.Match
-    has_many :claims, Claims.Claim
+    has_many :claims, Claims.Claim, on_replace: :delete
 
     belongs_to :stakeholder, Stakeholders.Stakeholder
 

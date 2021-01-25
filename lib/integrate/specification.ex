@@ -110,6 +110,60 @@ defmodule Integrate.Specification do
     end
   end
 
+  @doc """
+  Re-sync the spec claims for all stakeholders.
+
+  ## Examples
+
+      iex> sync_specs()
+      :ok
+
+      iex> sync_specs()
+      {:error, error}
+
+  """
+  def sync_specs do
+    query =
+      from s in Spec,
+        preload: [
+          :stakeholder,
+          claims: [
+            alternatives: [
+              columns: [
+                :alternatives
+              ]
+            ]
+          ]
+        ]
+
+    query
+    |> Repo.all()
+    |> Enum.reduce(Multi.new(), fn %Spec{} = spec, %Multi{} = multi ->
+      key = "spec-#{spec.id}"
+
+      multi
+      |> Multi.run(key, fn _, _ ->
+        case sync_spec(spec) do
+          {:ok, %{spec: updated_spec}} ->
+            {:ok, updated_spec}
+
+          {:error, failed_operation, failed_value, _} ->
+            {:error, {failed_operation, failed_value}}
+        end
+      end)
+    end)
+    |> Repo.transaction()
+  end
+
+  defp sync_spec(%Spec{claims: claims, stakeholder: %Stakeholder{name: name}} = spec) do
+    Multi.new()
+    |> Multi.run(:previous_claims, fn _, _ -> {:ok, claims} end)
+    |> Multi.run(:claims, fn _, _ -> {:ok, generate_claims(spec)} end)
+    |> Multi.update(:spec, &prepare_spec(&1, Changeset.change(spec)))
+    |> Multi.run(:permissions, &sync_permissions(&1, &2, name))
+    |> Repo.transaction()
+  end
+
   defp previous_spec(_repo, _context, %Stakeholder{} = stakeholder, type) do
     {:ok, get_spec(stakeholder, type)}
   end
@@ -257,7 +311,7 @@ defmodule Integrate.Specification do
          acc
        ) do
     column_map
-    |> Enum.reduce(acc, fn {name, db} ->
+    |> Enum.reduce(acc, fn {name, db}, acc ->
       alt_attrs = %{
         name: name,
         type: db.type,

@@ -335,4 +335,22 @@ defmodule Integrate.ValidateMigrationTest do
       assert {:ok, %{num_rows: 0}} = Repo.query("SELECT integratedb_unmet_claims()")
     end
   end
+
+  describe "triggers sync" do
+    test "inserts a new sync record" do
+      assert {:ok, %{num_rows: 0}} = Repo.query("SELECT * from integratedb.sync")
+
+      assert {:ok, _} = Repo.query("SELECT integratedb_validate_migration()")
+
+      assert {:ok, %{num_rows: 1}} = Repo.query("SELECT * from integratedb.sync")
+    end
+
+    test "using integratedb_sync function" do
+      assert {:ok, %{num_rows: 0}} = Repo.query("SELECT * from integratedb.sync")
+
+      assert {:ok, _} = Repo.query("SELECT integratedb_sync()")
+
+      assert {:ok, %{num_rows: 1}} = Repo.query("SELECT * from integratedb.sync")
+    end
+  end
 end

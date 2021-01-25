@@ -3,8 +3,6 @@ RETURNS integer AS $$
   DECLARE
     unmet RECORD;
   BEGIN
-    RAISE NOTICE 'IntegrateDB validating migration ...';
-
     FOR unmet IN
       SELECT * from integratedb_unmet_claims(max_results)
     LOOP
@@ -29,6 +27,8 @@ RETURNS integer AS $$
     END IF;
 
     RAISE NOTICE 'IntegrateDB validated migration OK.';
+
+    PERFORM integratedb_sync();
 
     RETURN 0;
   END;
