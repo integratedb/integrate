@@ -68,10 +68,12 @@ defmodule Integrate.SyncTest do
       }
 
       {:ok, %{spec: spec}} = set_spec(stakeholder, data)
+
       has_bar_column =
         spec
         |> get_column_names()
         |> Enum.member?("bar")
+
       refute has_bar_column
 
       {:ok, _} = Repo.query("ALTER TABLE integratedb.foos ADD COLUMN bar VARCHAR(255)")
@@ -83,6 +85,7 @@ defmodule Integrate.SyncTest do
         updated_spec
         |> get_column_names()
         |> Enum.member?("bar")
+
       assert has_bar_column
     end
   end

@@ -6,7 +6,7 @@ defmodule Integrate.Replication do
 
   alias Integrate.Replication.Changes.{
     NewRecord,
-    Transaction,
+    Transaction
   }
 
   @namespace Integrate.Config.namespace()
