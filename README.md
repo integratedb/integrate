@@ -8,7 +8,7 @@
 > "Learn the rules like a pro, so you can break them like an artist."\
 > — Picasso
 
-IntegrateDB is a database sharing system. It provides integration primitives and data ownership and migration controls. Use it to integrate services directly through a Postgres database.
+IntegrateDB is a database sharing system. It provides integration primitives and data ownership and migration controls. Use it to integrate applications directly through a Postgres database.
 
 - [Installation](https://hexdocs.pm/integratedb/installation.html)
 - [Usage](https://hexdocs.pm/integratedb/usage.html)

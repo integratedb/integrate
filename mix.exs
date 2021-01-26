@@ -58,6 +58,11 @@ defmodule Integrate.MixProject do
   defp docs do
     [
       name: "IntegrateDB",
+      description: """
+      IntegrateDB is a database sharing system. It provides integration primitives
+      and data ownership and migration controls. Use it to integrate applications
+      directly through a Postgres database.
+      """,
       source_url: "https://github.com/integratedb/integrate",
       homepage_url: "https://integratedb.org",
       docs: [
