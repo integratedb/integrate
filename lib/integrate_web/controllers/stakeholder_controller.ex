@@ -24,22 +24,23 @@ defmodule IntegrateWeb.StakeholderController do
   end
 
   def show(conn, %{"id" => id}) do
-    with %Stakeholder{} = stakeholder <- Stakeholders.get_stakeholder(id) do
-      render(conn, "show.json", stakeholder: stakeholder)
-    end
+    %Stakeholder{} = stakeholder = Stakeholders.get_stakeholder!(id)
+    render(conn, "show.json", stakeholder: stakeholder)
   end
 
   def update(conn, %{"id" => id, "stakeholder" => params}) do
-    with %Stakeholder{} = stakeholder <- Stakeholders.get_stakeholder(id),
-        {:ok, %{stakeholder: %Stakeholder{} = stakeholder}} <-
+    %Stakeholder{} = stakeholder = Stakeholders.get_stakeholder!(id)
+
+    with {:ok, %{stakeholder: %Stakeholder{} = stakeholder}} <-
           Stakeholders.update_stakeholder(stakeholder, params) do
       render(conn, "show.json", stakeholder: stakeholder)
     end
   end
 
   def delete(conn, %{"id" => id}) do
-    with %Stakeholder{} = stakeholder <- Stakeholders.get_stakeholder(id),
-        {:ok, %{stakeholder: %Stakeholder{}}} <- Stakeholders.delete_stakeholder(stakeholder) do
+    %Stakeholder{} = stakeholder = Stakeholders.get_stakeholder!(id)
+
+    with {:ok, %{stakeholder: %Stakeholder{}}} <- Stakeholders.delete_stakeholder(stakeholder) do
       send_resp(conn, :no_content, "")
     end
   end
