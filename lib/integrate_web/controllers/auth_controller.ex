@@ -12,12 +12,22 @@ defmodule IntegrateWeb.AuthController do
     with {:ok, credentials} <- Accounts.validate_credentials(params),
          {:ok, %User{id: user_id}} <- Accounts.authenticate(credentials) do
       render_login(conn, user_id)
+    else
+      nil ->
+        {:error, :forbidden}
+
+      val ->
+        val
     end
   end
 
-  def renew(conn, %{"data" => param}) when is_binary(param) do
-    with {:ok, user_id} <- Auth.verify_refresh_token(conn, param) do
+  def renew(conn, %{"data" => param}) do
+    with true <- is_binary(param),
+        {:ok, user_id} <- Auth.verify_refresh_token(conn, param) do
       render_login(conn, user_id)
+    else
+      _ ->
+        {:error, :forbidden}
     end
   end
 

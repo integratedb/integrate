@@ -29,6 +29,22 @@ defmodule Integrate.Stakeholders do
   @doc """
   Gets a single stakeholder.
 
+  Returns `nil` if the Stakeholder does not exist.
+
+  ## Examples
+
+      iex> get_stakeholder!(123)
+      %Stakeholder{}
+
+      iex> get_stakeholder!(456)
+      nil
+
+  """
+  def get_stakeholder(id), do: Repo.get(Stakeholder, id)
+
+  @doc """
+  Gets a single stakeholder.
+
   Raises `Ecto.NoResultsError` if the Stakeholder does not exist.
 
   ## Examples

@@ -14,7 +14,7 @@ defmodule IntegrateWeb.SpecificationController do
 
   def show(conn, %{"id" => stakeholder_id, "type" => type_param}) when type_param in @types do
     type = String.to_existing_atom(type_param)
-    context = {:stakeholder, Stakeholders.get_stakeholder!(stakeholder_id)}
+    context = {:stakeholder, Stakeholders.get_stakeholder(stakeholder_id)}
 
     with {:stakeholder, %Stakeholder{} = stakeholder} <- context,
          {:spec, %Spec{} = spec} <- {:spec, Specification.get_spec(stakeholder, type)} do
@@ -34,7 +34,7 @@ defmodule IntegrateWeb.SpecificationController do
   def update(conn, %{"id" => stakeholder_id, "type" => type_param, "data" => data})
       when type_param in @types do
     type = String.to_existing_atom(type_param)
-    context = {:stakeholder, Stakeholders.get_stakeholder!(stakeholder_id)}
+    context = {:stakeholder, Stakeholders.get_stakeholder(stakeholder_id)}
 
     with {:stakeholder, %Stakeholder{} = stakeholder} <- context,
          {:ok, attrs} <- SpecificationData.validate_and_expand(data),

@@ -12,7 +12,7 @@ defmodule Integrate.Fixtures do
 
     {:ok, user} = Accounts.create_user(attrs)
 
-    %{user: user}
+    %{user: user, user_password: attrs.password}
   end
 
   def create_stakeholder(%{user: user}) do

@@ -53,6 +53,19 @@ defmodule IntegrateWeb.StakeholderControllerTest do
       assert resp == %{"id" => id, "name" => "some_name"}
     end
 
+    test "stakeholder data includes credentials", %{conn: conn, user: user} do
+      path = Routes.stakeholder_path(conn, :create)
+      attrs = Map.put(@create_attrs, :user_id, user.id)
+
+      data =
+        conn
+        |> post(path, stakeholder: attrs)
+        |> json_response(201)
+        |> Map.get("data")
+
+      assert %{"credentials" => %{"username" => _, "password" => _}} = data
+    end
+
     test "renders errors when data is invalid", %{conn: conn} do
       conn = post(conn, Routes.stakeholder_path(conn, :create), stakeholder: @invalid_attrs)
       assert json_response(conn, 422)["errors"] != %{}
