@@ -1,0 +1,12 @@
+.circleci
+.direnv
+.envrc
+.git
+.kube
+.mix
+.postgres
+_build
+_build_docs
+docs
+test
+shell.nix
