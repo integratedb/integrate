@@ -1,9 +1,0 @@
-
-# IntegrateDB
-
-... introductory docs here ...
-
-
-
-
-

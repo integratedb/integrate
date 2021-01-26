@@ -20,9 +20,11 @@ High level summary of known issues and planned features:
 
 - [ ] notifications
 - [ ] replication ack error handling
+- [ ] avoid needing to be superuser (to create publication for all tables)
 - [ ] dockerfile and helm chart
 - [ ] docs and recipes
 - [ ] better logging for unmet claims
+- [ ] flexible type values / aliases
 - [ ] user roles, keys, rotation
 - [ ] API CLI
 - [ ] dashboard interface
