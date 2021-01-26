@@ -7,6 +7,7 @@
 .postgres
 _build
 _build_docs
+doc
 docs
 test
 shell.nix
