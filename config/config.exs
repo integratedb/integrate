@@ -34,8 +34,7 @@ config :integratedb, IntegrateWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "nA/h/J9mkINqqVSMc5E33eWFaKSHnprDsu1AOFsoXPkwelASBugWah7/Jlzvsre6",
   render_errors: [view: IntegrateWeb.ErrorView, accepts: ~w(json), layout: false],
-  pubsub_server: Integrate.PubSub,
-  live_view: [signing_salt: "/6qkE4+H"]
+  pubsub_server: Integrate.PubSub
 
 # Configures Elixir's Logger
 config :logger, :console,
