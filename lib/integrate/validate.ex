@@ -5,7 +5,7 @@ defmodule Integrate.Validate do
 
   alias Ecto.Changeset
 
-  @namespace_exp ~r/^\w{1,32}$/
+  @namespace_exp ~r/^[a-zA-Z_]{1}\w{0,31}$/
   @identifier_exp ~r/^[a-zA-Z_]{1}\w{0,63}$/
   @identifier_or_asterisk_exp ~r/^[a-zA-Z_]{1}\w{0,63}$|^\*$/
 
